@@ -15,21 +15,21 @@ export const DEFAULT_SETTINGS = {
     ]
 };
 
-// Curated Role Registry (Simple, Clean & Descriptive)
+// Curated Role Registry with Industry-Standard Engineering & Product Descriptions
 export const ADVENTURER_CLASSES = [
-    { id: 'Archmage', label: '🧙‍♂️ Archmage (AI Orchestration & Agentic Systems)', icon: '🧙‍♂️' },
-    { id: 'Paladin', label: '🛡️ Paladin (System Resilience, Security & Alignment)', icon: '🛡️' },
-    { id: 'Sorcerer', label: '🔥 Sorcerer (Rapid Prototyping & Product Velocity)', icon: '🔥' },
-    { id: 'Knight', label: '🐴 Knight (Full-Stack User Experience & Interface Design)', icon: '🐴' },
-    { id: 'Artificer', label: '⚙️ Artificer (Cloud Infrastructure & Tooling)', icon: '⚙️' },
-    { id: 'Ranger', label: '⚔️ Ranger (Autonomous Workflows & Full-Scope Exploration)', icon: '⚔️' },
-    { id: 'Alchemist', label: '🧪 Alchemist (Data Engineering, RAG & Vector Pipelines)', icon: '🧪' },
-    { id: 'Druid', label: '🌿 Druid (Ecosystem, API Integrations & Platform Growth)', icon: '🌿' },
-    { id: 'Rogue', label: '🗡️ Rogue (Vulnerability Assessment & Red Teaming)', icon: '🗡️' },
-    { id: 'Bard', label: '🪕 Bard (Product Synthesis & Design Systems)', icon: '🪕' },
-    { id: 'Cleric', label: '✨ Cleric (SRE, Telemetry & Continuous Health)', icon: '✨' },
-    { id: 'Monk', label: '🥊 Monk (Core Optimization & Latency Reduction)', icon: '🥊' },
-    { id: 'Necromancer', label: '💀 Necromancer (Legacy Code Transformation & Migration)', icon: '💀' }
+    { id: 'Archmage', label: '🧙‍♂️ Archmage — AI Architect & LLM Systems', desc: 'Agent orchestration, prompt architecture, and AI pipeline integration.', icon: '🧙‍♂️' },
+    { id: 'Paladin', label: '🛡️ Paladin — Site Reliability & DevOps', desc: 'Infrastructure resilience, high-availability uptime, and system alignment.', icon: '🛡️' },
+    { id: 'Sorcerer', label: '🔥 Sorcerer — Core Backend API & Distributed Systems', desc: 'Microservices, API prototyping, and scalable database architecture.', icon: '🔥' },
+    { id: 'Knight', label: '🐴 Knight — Security, Governance & Risk', desc: 'Code security auditing, IAM access policies, and enterprise compliance.', icon: '🐴' },
+    { id: 'Artificer', label: '⚙️ Artificer — Systems Engineering & Tooling', desc: 'CI/CD deployment pipelines, developer experience, and cloud build tools.', icon: '⚙️' },
+    { id: 'Ranger', label: '⚔️ Ranger — Full-Stack Velocity & Workflow Automation', desc: 'End-to-end feature exploration, cross-cutting workflows, and rapid delivery.', icon: '⚔️' },
+    { id: 'Alchemist', label: '🧪 Alchemist — Data Engineering & RAG Pipelines', desc: 'Vector databases, ETL transformations, ML pipelines, and analytics.', icon: '🧪' },
+    { id: 'Druid', label: '🌿 Druid — Product Ownership & Agile Scrum Mastery', desc: 'Sprint planning, backlog grooming, roadmap priorities, and team velocity.', icon: '🌿' },
+    { id: 'Rogue', label: '🗡️ Rogue — Performance Optimization & Debugging', desc: 'Memory leak profiling, latency reduction, and red-team vulnerability testing.', icon: '🗡️' },
+    { id: 'Bard', label: '🪕 Bard — UX/UI Design & Product Synthesis', desc: 'Design systems, interactive user flows, component libraries, and documentation.', icon: '🪕' },
+    { id: 'Cleric', label: '✨ Cleric — QA Engineering & Test Automation', desc: 'Test automation frameworks, regression prevention, and continuous telemetry.', icon: '✨' },
+    { id: 'Monk', label: '🥊 Monk — Frontend Core & State Architecture', desc: 'Modern web frameworks, responsive layouts, and deterministic state management.', icon: '🥊' },
+    { id: 'Necromancer', label: '💀 Necromancer — Legacy Code Modernization & Refactoring', desc: 'Technical debt elimination, codebase migrations, and clean refactoring.', icon: '💀' }
 ];
 
 export const LANE_COLORS = {

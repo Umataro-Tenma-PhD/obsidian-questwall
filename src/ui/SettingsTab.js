@@ -1,11 +1,12 @@
 /**
  * @file src/ui/SettingsTab.js
- * @description Plugin settings interface featuring multi-role party management, search/pagination, and theme selection.
+ * @description Plugin settings interface featuring multi-role party management, search/pagination, industry-standard role mapping, and theme selection.
  * @author Antigravity Engineering
  */
 
 import { PluginSettingTab, Setting, Notice } from 'obsidian';
 import { ADVENTURER_CLASSES, computeRolesDisplay } from '../constants/defaults.js';
+import { EditMemberModal } from './Modals.js';
 
 export class QuestwallSettingTab extends PluginSettingTab {
     /**
@@ -23,7 +24,7 @@ export class QuestwallSettingTab extends PluginSettingTab {
     display() {
         const { containerEl } = this;
         containerEl.empty();
-        containerEl.style.maxWidth = '750px';
+        containerEl.style.maxWidth = '780px';
 
         containerEl.createEl('h2', { text: 'Questwall Settings — Power Gamified Kanban Engine' });
 
@@ -67,40 +68,43 @@ export class QuestwallSettingTab extends PluginSettingTab {
         containerEl.createEl('hr', { attr: { style: 'margin: 24px 0;' } });
 
         // 3. Add New Team Member Box
-        const addSection = containerEl.createDiv({ attr: { style: 'padding: 18px; border-radius: 12px; background: var(--background-secondary); border: 1px solid var(--background-modifier-border);' } });
+        const addSection = containerEl.createDiv({ attr: { style: 'padding: 18px; border-radius: 12px; background: var(--background-secondary); border: 1px solid var(--background-modifier-border); margin-bottom: 24px;' } });
         addSection.createEl('h4', { text: '➕ Recruit New Adventurer / Team Member', attr: { style: 'margin-top: 0; margin-bottom: 14px;' } });
 
-        const addGrid = addSection.createDiv({ attr: { style: 'display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px;' } });
+        const addGrid = addSection.createDiv({ attr: { style: 'display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px;' } });
 
         const nameInput = addGrid.createEl('input', { type: 'text', placeholder: 'Name (e.g. James)', attr: { style: 'flex: 1; min-width: 160px; padding: 8px 12px; border-radius: 8px;' } });
         const colorInput = addGrid.createEl('input', { type: 'color', value: '#3b82f6', attr: { style: 'width: 44px; height: 38px; padding: 0; border: none; cursor: pointer; border-radius: 6px;' } });
 
-        addSection.createEl('div', { text: 'Select Roles / Adventurer Classes:', attr: { style: 'font-weight: 600; font-size: 0.86rem; margin-bottom: 8px; color: var(--text-muted);' } });
-        const roleGrid = addSection.createDiv({ attr: { style: 'display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;' } });
+        addSection.createEl('div', { text: 'Select Roles / Adventurer Classes (Industry Standard Engineering Mapping):', attr: { style: 'font-weight: 600; font-size: 0.86rem; margin-bottom: 8px; color: var(--text-normal);' } });
+        const roleGrid = addSection.createDiv({ attr: { style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 280px; overflow-y: auto; padding-right: 6px; margin-bottom: 16px;' } });
 
         const selectedRoles = new Set(['Paladin']);
         const renderRoleSelector = () => {
             roleGrid.empty();
             ADVENTURER_CLASSES.forEach(c => {
                 const isSel = selectedRoles.has(c.id);
-                const pill = roleGrid.createEl('span', {
-                    text: `${c.icon} ${c.id}`,
+                const pill = roleGrid.createDiv({
                     attr: {
                         role: 'button',
                         tabindex: '0',
                         'aria-pressed': isSel ? 'true' : 'false',
                         style: `
-                            padding: 5px 12px;
-                            border-radius: 16px;
-                            font-size: 0.82rem;
-                            font-weight: 600;
+                            padding: 8px 12px;
+                            border-radius: 10px;
                             cursor: pointer;
                             border: 1px solid ${isSel ? 'var(--interactive-accent)' : 'var(--background-modifier-border)'};
-                            background: ${isSel ? 'var(--interactive-accent)' : 'var(--background-primary)'};
-                            color: ${isSel ? 'var(--text-on-accent)' : 'var(--text-normal)'};
+                            background: ${isSel ? 'rgba(59, 130, 246, 0.12)' : 'var(--background-primary)'};
+                            transition: all 0.2s ease;
                         `
                     }
                 });
+
+                const top = pill.createDiv({ attr: { style: 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;' } });
+                top.createDiv({ text: c.label, attr: { style: `font-weight: 700; font-size: 0.82rem; color: ${isSel ? 'var(--interactive-accent)' : 'var(--text-normal)'};` } });
+                top.createSpan({ text: isSel ? '✓' : '+', attr: { style: `font-weight: bold; color: ${isSel ? 'var(--interactive-accent)' : 'var(--text-muted)'};` } });
+
+                pill.createDiv({ text: c.desc, attr: { style: 'font-size: 0.74rem; color: var(--text-muted); line-height: 1.25;' } });
 
                 const toggleRole = () => {
                     if (isSel && selectedRoles.size > 1) selectedRoles.delete(c.id);
@@ -163,6 +167,18 @@ export class QuestwallSettingTab extends PluginSettingTab {
                 handleAddMember();
             }
         });
+
+        // 4. Role Mapping & Industry Standards Guide (To smoothly transition users into the theme)
+        const guideSection = containerEl.createDiv({ attr: { style: 'padding: 16px; border-radius: 12px; background: var(--background-primary-alt); border: 1px solid var(--background-modifier-border);' } });
+        guideSection.createEl('h4', { text: '📖 Role Guide & Industry Standard Mapping Legend', attr: { style: 'margin-top: 0; margin-bottom: 10px; font-weight: 700; color: var(--text-normal);' } });
+        guideSection.createEl('p', { text: 'To transition smoothly between traditional engineering org structures and our gamified Questwall themes, each Adventurer Class directly corresponds to an industry-standard engineering discipline:', attr: { style: 'font-size: 0.84rem; color: var(--text-muted); margin-bottom: 14px;' } });
+
+        const guideGrid = guideSection.createDiv({ attr: { style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 8px;' } });
+        ADVENTURER_CLASSES.forEach(c => {
+            const row = guideGrid.createDiv({ attr: { style: 'padding: 8px 10px; border-radius: 8px; background: var(--background-primary); border: 1px solid var(--background-modifier-border);' } });
+            row.createDiv({ text: c.label, attr: { style: 'font-weight: 700; font-size: 0.82rem; color: var(--text-normal); margin-bottom: 2px;' } });
+            row.createDiv({ text: c.desc, attr: { style: 'font-size: 0.74rem; color: var(--text-muted); line-height: 1.25;' } });
+        });
     }
 
     renderTeamList(containerEl) {
@@ -199,17 +215,48 @@ export class QuestwallSettingTab extends PluginSettingTab {
             const details = info.createDiv();
             details.createDiv({ text: member.name, attr: { style: 'font-weight: 700; font-size: 0.96rem; color: var(--text-normal);' } });
 
-            // Render Role Badges
+            // Render Role Badges with full industry description tooltip
             const rolesList = details.createDiv({ attr: { style: 'display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;' } });
             const rolesArr = member.roles || (member.classTitle ? member.classTitle.split(' ') : ['Paladin']);
             rolesArr.forEach(r => {
+                const found = ADVENTURER_CLASSES.find(c => c.id === r);
+                const tooltipText = found ? `${found.label} — ${found.desc}` : r;
                 rolesList.createEl('span', {
                     text: r,
-                    attr: { style: `padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; background: rgba(59, 130, 246, 0.12); color: ${member.color || '#3b82f6'}; border: 1px solid ${member.color || '#3b82f6'};` }
+                    attr: {
+                        title: tooltipText,
+                        style: `padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; background: rgba(59, 130, 246, 0.12); color: ${member.color || '#3b82f6'}; border: 1px solid ${member.color || '#3b82f6'}; cursor: help;`
+                    }
                 });
             });
 
-            const delBtn = card.createEl('button', {
+            // Action buttons: Edit & Remove
+            const cardActions = card.createDiv({ attr: { style: 'display: flex; gap: 8px; align-items: center;' } });
+
+            const editBtn = cardActions.createEl('button', {
+                text: '✏️ Edit Roles',
+                attr: {
+                    role: 'button',
+                    tabindex: '0',
+                    style: 'padding: 6px 12px; border-radius: 8px; background: rgba(59, 130, 246, 0.12); color: var(--interactive-accent); border: 1px solid rgba(59, 130, 246, 0.35); font-size: 0.82rem; font-weight: 600; cursor: pointer;'
+                }
+            });
+
+            const handleEdit = () => {
+                new EditMemberModal(this.app, member, this.plugin, () => {
+                    this.renderTeamList(containerEl);
+                }).open();
+            };
+
+            editBtn.addEventListener('click', handleEdit);
+            editBtn.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleEdit();
+                }
+            });
+
+            const delBtn = cardActions.createEl('button', {
                 text: '🗑️ Remove',
                 attr: {
                     role: 'button',
