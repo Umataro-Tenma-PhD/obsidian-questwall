@@ -1,6 +1,6 @@
 /**
  * @file src/ui/Modals.js
- * @description Accessible, WCAG 2.1 AA compliant modal dialogs for color tinting, quest assignment, and team member editing.
+ * @description Accessible, WCAG 2.1 AA compliant modal dialogs for color tinting, task assignment, and team member editing.
  * @author Antigravity Engineering
  */
 
@@ -137,10 +137,10 @@ export class QuickAssignModal extends Modal {
         contentEl.style.padding = '22px';
         contentEl.style.maxWidth = '500px';
 
-        const theme = this.settings.theme || 'guild';
+        const theme = this.settings.theme || 'sleek';
         const isGuild = theme === 'guild';
 
-        contentEl.createEl('h3', { text: `⚡ Quick Assign Quest: "${this.cleanTitle}"`, attr: { style: 'margin-top: 0; margin-bottom: 18px; font-weight: 700;' } });
+        contentEl.createEl('h3', { text: `⚡ Quick Assign: "${this.cleanTitle}"`, attr: { style: 'margin-top: 0; margin-bottom: 18px; font-weight: 700;' } });
 
         contentEl.createEl('h4', { text: isGuild ? '🗡️ Select Adventurer / Party Member' : 'Assignee / Team Member', attr: { style: 'margin-bottom: 8px; font-size: 0.92rem;' } });
         const assigneeContainer = contentEl.createDiv({ attr: { style: 'display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px;' } });
@@ -203,9 +203,9 @@ export class QuickAssignModal extends Modal {
                 if (name && name.trim()) {
                     const cleanName = name.trim();
                     if (!members.some(m => m.name.toLowerCase() === cleanName.toLowerCase())) {
-                        members.push({ name: cleanName, icon: '👤', classTitle: 'Adventurer', color: '#3b82f6' });
+                        members.push({ name: cleanName, icon: '👤', classTitle: 'Team Member', color: '#3b82f6' });
                         if (this.settings && Array.isArray(this.settings.teamMembers)) {
-                            this.settings.teamMembers.push({ name: cleanName, icon: '👤', classTitle: 'Adventurer', color: '#3b82f6' });
+                            this.settings.teamMembers.push({ name: cleanName, icon: '👤', classTitle: 'Team Member', color: '#3b82f6' });
                         }
                     }
                     this.selectedAssignee = `[[@${cleanName}]]`;
@@ -328,7 +328,7 @@ export class QuickAssignModal extends Modal {
         cancelBtn.addEventListener('click', () => this.close());
 
         const saveBtn = actions.createEl('button', {
-            text: '💾 Save Quest Assignment',
+            text: '💾 Save Assignment',
             attr: {
                 role: 'button',
                 tabindex: '0',
@@ -356,7 +356,7 @@ export class QuickAssignModal extends Modal {
     updatePreview() {
         if (!this.previewEl) return;
         const tags = [this.selectedAssignee, this.selectedPriority, this.selectedType].filter(Boolean).join(' ');
-        this.previewEl.innerHTML = `<strong>Final Card Note Line:</strong><br/>- [ ] ${this.cleanTitle} <span style="color: var(--interactive-accent); font-weight: bold;">${tags}</span>`;
+        this.previewEl.innerHTML = `<strong>Card Note Line:</strong><br/>- [ ] ${this.cleanTitle} <span style="color: var(--interactive-accent); font-weight: bold;">${tags}</span>`;
     }
 
     onClose() {
@@ -387,7 +387,7 @@ export class EditMemberModal extends Modal {
         contentEl.style.padding = '24px';
         contentEl.style.maxWidth = '640px';
 
-        contentEl.createEl('h3', { text: `✏️ Edit Party Member: "${this.member.name}"`, attr: { style: 'margin-top: 0; margin-bottom: 18px; font-weight: 700;' } });
+        contentEl.createEl('h3', { text: `✏️ Edit Team Member: "${this.member.name}"`, attr: { style: 'margin-top: 0; margin-bottom: 18px; font-weight: 700;' } });
 
         // Name & Color
         const topRow = contentEl.createDiv({ attr: { style: 'display: flex; gap: 12px; align-items: center; margin-bottom: 20px;' } });
@@ -397,7 +397,7 @@ export class EditMemberModal extends Modal {
         const colorInput = topRow.createEl('input', { type: 'color', value: this.member.color || '#3b82f6', attr: { style: 'width: 46px; height: 38px; padding: 0; border: none; cursor: pointer; border-radius: 6px;' } });
 
         // Role Selector with Industry Standard Descriptions
-        contentEl.createEl('div', { text: 'Select Roles / Adventurer Classes (Industry Standard Mapping):', attr: { style: 'font-weight: 600; font-size: 0.9rem; margin-bottom: 10px; color: var(--text-normal);' } });
+        contentEl.createEl('div', { text: 'Select Engineering & Product Roles:', attr: { style: 'font-weight: 600; font-size: 0.9rem; margin-bottom: 10px; color: var(--text-normal);' } });
         const roleGrid = contentEl.createDiv({ attr: { style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 380px; overflow-y: auto; padding-right: 6px; margin-bottom: 22px;' } });
 
         const renderRoleGrid = () => {
@@ -458,7 +458,7 @@ export class EditMemberModal extends Modal {
 
         const triggerSave = async () => {
             const newName = nameInput.value.trim();
-            if (!newName) {
+            if (!name) {
                 new Notice('Name cannot be empty.');
                 return;
             }

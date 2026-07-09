@@ -1,11 +1,11 @@
 /**
  * @file src/constants/defaults.js
- * @description Single source of truth for Questwall configuration, role definitions, color palettes, and string sanitization rules.
+ * @description Single source of truth for Questwall configuration, engineering role definitions, color palettes, and string sanitization rules.
  * @author Antigravity Engineering
  */
 
 export const DEFAULT_SETTINGS = {
-    theme: 'guild', // 'guild' (Adventure Guild RPG) | 'sleek' (Glassmorphism Modern)
+    theme: 'sleek', // 'sleek' (Default Modern Glassmorphism) | 'guild' (Optional RPG Guild Theme)
     laneTintMap: {}, // Persistent mapping of column title -> color key (e.g. { 'Done': 'emerald' })
     teamMembers: [
         { name: 'James', roles: ['Paladin', 'Archmage'], classTitle: 'Paladin Archmage', icon: '🛡️🧙‍♂️', color: '#3b82f6' },
@@ -15,7 +15,7 @@ export const DEFAULT_SETTINGS = {
     ]
 };
 
-// Curated Role Registry with Industry-Standard Engineering & Product Descriptions
+// Curated Engineering & Product Role Registry with Industry-Standard Descriptions
 export const ADVENTURER_CLASSES = [
     { id: 'Archmage', label: '🧙‍♂️ Archmage — AI Architect & LLM Systems', desc: 'Agent orchestration, prompt architecture, and AI pipeline integration.', icon: '🧙‍♂️' },
     { id: 'Paladin', label: '🛡️ Paladin — Site Reliability & DevOps', desc: 'Infrastructure resilience, high-availability uptime, and system alignment.', icon: '🛡️' },

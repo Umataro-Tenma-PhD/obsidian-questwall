@@ -1,6 +1,6 @@
 /**
  * @file src/ui/SettingsTab.js
- * @description Plugin settings interface featuring multi-role party management, search/pagination, industry-standard role mapping, and theme selection.
+ * @description Plugin settings interface featuring multi-role team management, search/pagination, engineering role mapping, and theme selection.
  * @author Antigravity Engineering
  */
 
@@ -26,15 +26,15 @@ export class QuestwallSettingTab extends PluginSettingTab {
         containerEl.empty();
         containerEl.style.maxWidth = '780px';
 
-        containerEl.createEl('h2', { text: 'Questwall Settings — Power Gamified Kanban Engine' });
+        containerEl.createEl('h2', { text: 'Questwall — Agile Team & Kanban Supercharger' });
 
         // 1. Theme Setting
         new Setting(containerEl)
             .setName('Board Aesthetics & Theme')
-            .setDesc('Choose between Adventure Guild Quest RPG (parchment, wax seals, threat ranks) or Sleek Glassmorphism (blur, neon accents, modern badges).')
+            .setDesc('Select your Kanban board visual theme. Default provides a modern sleek glassmorphism command center; Guild adds optional gamified RPG elements.')
             .addDropdown(drop => {
-                drop.addOption('guild', '⚔️ Adventure Guild RPG (High Fantasy Quests)');
-                drop.addOption('sleek', '✨ Sleek Glass (Modern Glassmorphism & Neon UI)');
+                drop.addOption('sleek', 'Default');
+                drop.addOption('guild', 'Guild');
                 drop.setValue(this.plugin.settings.theme);
                 drop.onChange(async (value) => {
                     this.plugin.settings.theme = value;
@@ -47,7 +47,7 @@ export class QuestwallSettingTab extends PluginSettingTab {
 
         // 2. Team & Party Management Section
         const teamHeader = containerEl.createDiv({ attr: { style: 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;' } });
-        teamHeader.createEl('h3', { text: '👥 Party & Team Management', attr: { style: 'margin: 0;' } });
+        teamHeader.createEl('h3', { text: '👥 Team & Role Management', attr: { style: 'margin: 0;' } });
 
         const searchContainer = teamHeader.createDiv({ attr: { style: 'display: flex; gap: 8px; align-items: center;' } });
         const searchInput = searchContainer.createEl('input', {
@@ -69,14 +69,14 @@ export class QuestwallSettingTab extends PluginSettingTab {
 
         // 3. Add New Team Member Box
         const addSection = containerEl.createDiv({ attr: { style: 'padding: 18px; border-radius: 12px; background: var(--background-secondary); border: 1px solid var(--background-modifier-border); margin-bottom: 24px;' } });
-        addSection.createEl('h4', { text: '➕ Recruit New Adventurer / Team Member', attr: { style: 'margin-top: 0; margin-bottom: 14px;' } });
+        addSection.createEl('h4', { text: '➕ Add New Team Member', attr: { style: 'margin-top: 0; margin-bottom: 14px;' } });
 
         const addGrid = addSection.createDiv({ attr: { style: 'display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px;' } });
 
         const nameInput = addGrid.createEl('input', { type: 'text', placeholder: 'Name (e.g. James)', attr: { style: 'flex: 1; min-width: 160px; padding: 8px 12px; border-radius: 8px;' } });
         const colorInput = addGrid.createEl('input', { type: 'color', value: '#3b82f6', attr: { style: 'width: 44px; height: 38px; padding: 0; border: none; cursor: pointer; border-radius: 6px;' } });
 
-        addSection.createEl('div', { text: 'Select Roles / Adventurer Classes (Industry Standard Engineering Mapping):', attr: { style: 'font-weight: 600; font-size: 0.86rem; margin-bottom: 8px; color: var(--text-normal);' } });
+        addSection.createEl('div', { text: 'Select Engineering & Product Roles:', attr: { style: 'font-weight: 600; font-size: 0.86rem; margin-bottom: 8px; color: var(--text-normal);' } });
         const roleGrid = addSection.createDiv({ attr: { style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 280px; overflow-y: auto; padding-right: 6px; margin-bottom: 16px;' } });
 
         const selectedRoles = new Set(['Paladin']);
@@ -124,7 +124,7 @@ export class QuestwallSettingTab extends PluginSettingTab {
         renderRoleSelector();
 
         const submitBtn = addSection.createEl('button', {
-            text: '⚔️ Recruit Adventurer into Party',
+            text: '➕ Add Team Member',
             attr: {
                 role: 'button',
                 tabindex: '0',
@@ -139,7 +139,7 @@ export class QuestwallSettingTab extends PluginSettingTab {
                 return;
             }
             if (this.plugin.settings.teamMembers.some(m => m.name.toLowerCase() === name.toLowerCase())) {
-                new Notice('That adventurer is already in the party!');
+                new Notice('That person is already on the team!');
                 return;
             }
 
@@ -156,7 +156,7 @@ export class QuestwallSettingTab extends PluginSettingTab {
 
             await this.plugin.saveSettings();
             nameInput.value = '';
-            new Notice(`${computed.icon} ${name} recruited to the party!`);
+            new Notice(`${computed.icon} ${name} added to the team!`);
             this.renderTeamList(listContainerEl);
         };
 
@@ -168,10 +168,10 @@ export class QuestwallSettingTab extends PluginSettingTab {
             }
         });
 
-        // 4. Role Mapping & Industry Standards Guide (To smoothly transition users into the theme)
+        // 4. Role Mapping & Industry Standards Guide
         const guideSection = containerEl.createDiv({ attr: { style: 'padding: 16px; border-radius: 12px; background: var(--background-primary-alt); border: 1px solid var(--background-modifier-border);' } });
-        guideSection.createEl('h4', { text: '📖 Role Guide & Industry Standard Mapping Legend', attr: { style: 'margin-top: 0; margin-bottom: 10px; font-weight: 700; color: var(--text-normal);' } });
-        guideSection.createEl('p', { text: 'To transition smoothly between traditional engineering org structures and our gamified Questwall themes, each Adventurer Class directly corresponds to an industry-standard engineering discipline:', attr: { style: 'font-size: 0.84rem; color: var(--text-muted); margin-bottom: 14px;' } });
+        guideSection.createEl('h4', { text: '📖 Engineering & Product Role Mapping Legend', attr: { style: 'margin-top: 0; margin-bottom: 10px; font-weight: 700; color: var(--text-normal);' } });
+        guideSection.createEl('p', { text: 'To maintain clean alignment between standard engineering org structures and optional gamified badges, each role maps directly to an industry-standard engineering discipline:', attr: { style: 'font-size: 0.84rem; color: var(--text-muted); margin-bottom: 14px;' } });
 
         const guideGrid = guideSection.createDiv({ attr: { style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 8px;' } });
         ADVENTURER_CLASSES.forEach(c => {
@@ -191,7 +191,7 @@ export class QuestwallSettingTab extends PluginSettingTab {
         });
 
         if (members.length === 0) {
-            containerEl.createEl('div', { text: 'No adventurers found matching query.', attr: { style: 'padding: 16px; text-align: center; color: var(--text-muted); font-style: italic;' } });
+            containerEl.createEl('div', { text: 'No team members found matching query.', attr: { style: 'padding: 16px; text-align: center; color: var(--text-muted); font-style: italic;' } });
             return;
         }
 
@@ -268,7 +268,7 @@ export class QuestwallSettingTab extends PluginSettingTab {
             const handleRemove = async () => {
                 this.plugin.settings.teamMembers = this.plugin.settings.teamMembers.filter(m => m.name !== member.name);
                 await this.plugin.saveSettings();
-                new Notice(`${member.name} removed from party.`);
+                new Notice(`${member.name} removed from team.`);
                 this.renderTeamList(containerEl);
             };
 
