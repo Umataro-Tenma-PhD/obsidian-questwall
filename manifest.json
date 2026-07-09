@@ -1,0 +1,10 @@
+{
+  "id": "questwall",
+  "name": "Questwall",
+  "version": "2.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "Turn your Obsidian Kanban boards into high-fidelity Guild Quests, Retro Pixel RPGs, or Sleek Glassmorphism startup boards with interactive filtering, adventurer classes, and focus mode.",
+  "author": "Antigravity Engineering",
+  "authorUrl": "https://github.com",
+  "isDesktopOnly": false
+}

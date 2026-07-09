@@ -1,0 +1,25 @@
+{
+  "name": "obsidian-questwall",
+  "version": "2.0.0",
+  "description": "Turn your Obsidian Kanban boards into high-fidelity Guild Quests, Retro Pixel RPGs, or Sleek Glassmorphism startup boards with interactive filtering, adventurer classes, and focus mode.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production"
+  },
+  "keywords": [
+    "obsidian",
+    "kanban",
+    "rpg",
+    "gamification",
+    "glassmorphism",
+    "project-management"
+  ],
+  "author": "Antigravity Engineering <https://github.com/Umataro-Tenma-PhD>",
+  "license": "MIT",
+  "devDependencies": {
+    "builtin-modules": "^5.3.0",
+    "esbuild": "^0.20.2",
+    "obsidian": "latest"
+  }
+}

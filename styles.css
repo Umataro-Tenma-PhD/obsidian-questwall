@@ -1,0 +1,319 @@
+/* ==========================================================================
+   QUESTWALL: High-Fidelity Dual-Theme Engine (`sleek` | `guild`)
+   ========================================================================== */
+
+/* --- 1. BASE TOOLBAR & LAYOUT --- */
+.questwall-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    margin: 8px 16px 20px 16px;
+    border-radius: 12px;
+    background: var(--background-secondary-alt);
+    border: 1px solid var(--background-modifier-border);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    z-index: 10;
+}
+
+.questwall-toolbar-section {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.questwall-toolbar-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-right: 4px;
+}
+
+.questwall-toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--background-modifier-border);
+    margin: 0 4px;
+}
+
+.questwall-filter-btn {
+    padding: 4px 11px;
+    border-radius: 16px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.questwall-filter-btn:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--text-muted);
+    transform: translateY(-1px);
+}
+
+.questwall-filter-btn.is-active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+    box-shadow: 0 2px 10px rgba(var(--interactive-accent-rgb), 0.35);
+    transform: translateY(-1px);
+}
+
+/* Theme Switcher Button */
+.questwall-theme-btn {
+    margin-left: auto;
+    padding: 5px 13px;
+    border-radius: 20px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--interactive-accent-hover);
+    color: var(--text-on-accent);
+    border: 1px solid transparent;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.questwall-theme-btn:hover {
+    filter: brightness(1.15);
+    transform: scale(1.03);
+}
+
+.questwall-search-input {
+    padding: 5px 12px;
+    border-radius: 16px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 0.84rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.questwall-search-input:focus {
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.2);
+}
+
+.questwall-sort-select {
+    padding: 4px 10px;
+    border-radius: 14px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 0.84rem;
+    cursor: pointer;
+}
+
+.questwall-reset-btn {
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 0.80rem;
+    font-weight: 600;
+    color: var(--text-error);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.questwall-reset-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* Quick-assign trigger */
+.qw-quick-assign-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: var(--background-modifier-hover);
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin-left: 6px;
+    transition: all 0.2s ease;
+}
+
+.qw-quick-assign-trigger:hover {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    transform: scale(1.1);
+}
+
+/* Focus mode dimmed state */
+.kanban-plugin__item.is-filtered-dimmed {
+    opacity: 0.18 !important;
+    filter: grayscale(85%) !important;
+    transition: all 0.4s ease !important;
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   THEME 1: SLEEK GLASSMORPHISM (`[data-questwall-theme="sleek"]`)
+   ========================================================================== */
+body[data-questwall-theme="sleek"] .questwall-toolbar {
+    background: rgba(var(--background-primary-rgb), 0.65);
+    backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* ==========================================================================
+   THEME 2: ADVENTURE GUILD / HIGH FANTASY (`[data-questwall-theme="guild"]`)
+   ========================================================================== */
+body[data-questwall-theme="guild"] .questwall-toolbar {
+    background: linear-gradient(135deg, rgba(38, 30, 22, 0.96), rgba(24, 20, 15, 0.98));
+    border: 1.5px solid rgba(234, 179, 8, 0.5);
+    box-shadow: 0 8px 28px rgba(234, 179, 8, 0.16), inset 0 0 15px rgba(234, 179, 8, 0.08);
+    border-radius: 10px;
+    font-family: Georgia, 'Times New Roman', serif;
+}
+
+body[data-questwall-theme="guild"] .questwall-toolbar-label {
+    color: #facc15;
+    text-shadow: 0 0 8px rgba(250, 204, 21, 0.4);
+    letter-spacing: 0.08em;
+}
+
+body[data-questwall-theme="guild"] .questwall-filter-btn {
+    border-radius: 4px;
+    background: rgba(69, 53, 38, 0.7);
+    color: #fde047;
+    border: 1px solid rgba(234, 179, 8, 0.4);
+    font-family: Georgia, serif;
+}
+
+body[data-questwall-theme="guild"] .questwall-filter-btn:hover {
+    background: rgba(113, 63, 18, 0.8);
+    border-color: #facc15;
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.35);
+}
+
+body[data-questwall-theme="guild"] .questwall-filter-btn.is-active {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    color: #fff;
+    border-color: #fef08a;
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.6);
+}
+
+/* Guild Quest Cards (Parchment & Gold Foil Bounties) */
+body[data-questwall-theme="guild"] .kanban-plugin__item {
+    background: linear-gradient(145deg, rgba(38, 32, 24, 0.95), rgba(28, 23, 17, 0.98)) !important;
+    border: 1px solid rgba(217, 119, 6, 0.45) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(217, 119, 6, 0.06) !important;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+body[data-questwall-theme="guild"] .kanban-plugin__item:hover {
+    border-color: #facc15 !important;
+    box-shadow: 0 8px 24px rgba(250, 204, 21, 0.28), inset 0 0 25px rgba(250, 204, 21, 0.12) !important;
+    transform: translateY(-3px) !important;
+}
+
+/* Guild Wax Seal Badges */
+body[data-questwall-theme="guild"] a.tag,
+body[data-questwall-theme="guild"] [class*="tag"],
+body[data-questwall-theme="guild"] a.internal-link[href*="@"] {
+    border-radius: 4px 10px 10px 4px !important;
+    font-family: Georgia, serif !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.03em !important;
+    box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4) !important;
+}
+
+body[data-questwall-theme="guild"] .questwall-theme-btn {
+    background: linear-gradient(135deg, #ca8a04, #854d0e);
+    border: 1px solid #fef08a;
+    box-shadow: 0 0 14px rgba(234, 179, 8, 0.4);
+    font-family: Georgia, serif;
+}
+
+
+/* ==========================================================================
+   UNIVERSAL CONSISTENT BADGE STYLING (`.qw-card-badge`)
+   ========================================================================== */
+.qw-card-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    border-radius: 16px !important;
+    padding: 3px 10px !important;
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    margin-right: 6px !important;
+    margin-bottom: 4px !important;
+    text-decoration: none !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+    transition: all 0.18s ease !important;
+}
+
+.qw-card-badge:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Suppress all legacy themes/snippets (like AnuPpuccin or custom CSS) from injecting duplicate emoji icons via ::before or ::after */
+.kanban-plugin__item a.qw-card-badge::before,
+.kanban-plugin__item a.qw-card-badge::after,
+.kanban-plugin a.qw-card-badge::before,
+.kanban-plugin a.qw-card-badge::after,
+.cm-s-obsidian span.qw-card-badge::before,
+.cm-s-obsidian span.qw-card-badge::after,
+[class*="tag"].qw-card-badge::before,
+[class*="tag"].qw-card-badge::after,
+a.tag.qw-card-badge::before,
+a.tag.qw-card-badge::after {
+    content: none !important;
+    display: none !important;
+}
+
+
+/* --- MODAL PILLS & GRID FOR QUICK ASSIGN --- */
+.qw-modal-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.qw-modal-pill {
+    padding: 6px 14px;
+    border-radius: 16px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
+    font-size: 0.86rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.qw-modal-pill:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--text-muted);
+}
+
+.qw-modal-pill.is-selected {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+    box-shadow: 0 2px 8px rgba(var(--interactive-accent-rgb), 0.35);
+}
