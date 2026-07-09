@@ -1,6 +1,6 @@
 /**
  * @file src/main.js
- * @description Questwall 2.0 Plugin Entrypoint — High-Fidelity Dual-Theme Engine for Obsidian Kanban.
+ * @description Questwall 2.0 Plugin Entrypoint — High-Fidelity Agile & Kanban Workflow Engine.
  * @author Antigravity Engineering
  */
 
@@ -14,7 +14,7 @@ import { QuestwallSettingTab } from './ui/SettingsTab.js';
 
 export default class QuestwallPlugin extends Plugin {
     async onload() {
-        console.log('Loading Questwall 2.0 (Zero-Polling Gamified Kanban Engine)...');
+        console.log('Loading Questwall 2.0 (Agile Team & Kanban Supercharger Engine)...');
 
         await this.loadSettings();
 
@@ -71,6 +71,12 @@ export default class QuestwallPlugin extends Plugin {
         // Refresh active toolbars on theme change
         document.querySelectorAll('.questwall-toolbar').forEach(el => el.remove());
         this.filterService.scanAndInjectToolbars();
+
+        // Instantly resync all badges and trigger view update across every active Kanban board
+        document.querySelectorAll('.kanban-plugin__board').forEach(board => {
+            if (this.cardService) this.cardService.syncBoardBadges(board);
+            if (this.filterService) this.filterService.applyFiltersAndSort(board);
+        });
     }
 
     onunload() {

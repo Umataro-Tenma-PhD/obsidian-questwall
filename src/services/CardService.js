@@ -21,16 +21,17 @@ export class CardService {
      */
     syncBoardBadges(board) {
         if (!board) return;
-        const theme = (this.plugin.settings && this.plugin.settings.theme) || 'guild';
+        const theme = (this.plugin.settings && this.plugin.settings.theme) || 'sleek';
+        const isGuild = theme === 'guild';
 
         board.querySelectorAll('.kanban-plugin__item').forEach(item => {
             const titleEl = item.querySelector('.kanban-plugin__item-title');
             if (!titleEl) return;
 
             // 1. Process Assignee / Team Member tags and internal links
-            const tagsAndLinks = item.querySelectorAll('a.tag, a.internal-link[href*="@"], a.internal-link[data-href*="@"], span.cm-hashtag');
+            const tagsAndLinks = item.querySelectorAll('a.tag, a.internal-link[href*="@"], a.internal-link[data-href*="@"], span.cm-hashtag, .qw-badge-assignee');
             tagsAndLinks.forEach(el => {
-                const raw = el.getAttribute('href') || el.getAttribute('data-href') || el.innerText || '';
+                const raw = el.dataset.qwCleanTag || el.getAttribute('data-qw-assignee') || el.getAttribute('href') || el.getAttribute('data-href') || el.innerText || '';
                 const clean = cleanRawTagId(raw);
                 if (!clean) return;
 
@@ -45,9 +46,15 @@ export class CardService {
                     }
                     const icon = member ? (member.icon || '👤') : '👤';
                     const label = member ? member.name : clean;
-                    const roles = member && member.roles && member.roles.length ? ` • ${member.roles.join(', ')}` : '';
+                    
+                    let rolesStr = '';
+                    if (member && member.roles && member.roles.length) {
+                        rolesStr = isGuild ? ` • ${member.roles.join(', ')}` : ` • ${member.classTitle || 'Team Member'}`;
+                    } else if (member && member.classTitle) {
+                        rolesStr = ` • ${member.classTitle}`;
+                    }
 
-                    el.innerHTML = `${icon} ${label}${roles}`;
+                    el.innerHTML = `${icon} ${label}${rolesStr}`;
                     el.classList.add('qw-card-badge', 'qw-badge-assignee');
                     el.setAttribute('data-qw-assignee', clean);
                     el.dataset.qwCleanTag = clean;
@@ -59,55 +66,55 @@ export class CardService {
             });
 
             // 2. Process Priority Rankings (#P1, #P2, #P3)
-            item.querySelectorAll('a.tag, span.cm-hashtag').forEach(el => {
-                const text = el.innerText || '';
-                if (text.match(/#(?:priority\/)?P1\b/i)) {
-                    el.innerHTML = theme === 'guild' ? '🐉 S-Rank' : '🔴 P1';
+            item.querySelectorAll('a.tag, span.cm-hashtag, .qw-badge-priority').forEach(el => {
+                const text = (el.dataset.qwCleanTag || el.innerText || '').trim();
+                if (text.match(/^(?:#(?:priority\/)?)?P1$|S-Rank|🔴 P1/i)) {
+                    el.innerHTML = isGuild ? '🐉 S-Rank' : '🔴 P1 (High)';
                     el.classList.add('qw-card-badge', 'qw-badge-priority');
-                    el.style.background = theme === 'guild' ? 'linear-gradient(135deg, #7f1d1d, #450a0a)' : 'rgba(239, 68, 68, 0.18)';
-                    el.style.border = theme === 'guild' ? '1.5px solid #f87171' : '1px solid rgba(239, 68, 68, 0.4)';
-                    el.style.color = theme === 'guild' ? '#fca5a5' : '#ef4444';
+                    el.style.background = isGuild ? 'linear-gradient(135deg, #7f1d1d, #450a0a)' : 'rgba(239, 68, 68, 0.18)';
+                    el.style.border = isGuild ? '1.5px solid #f87171' : '1px solid rgba(239, 68, 68, 0.4)';
+                    el.style.color = isGuild ? '#fca5a5' : '#ef4444';
                     el.dataset.qwCleanTag = 'P1';
-                } else if (text.match(/#(?:priority\/)?P2\b/i)) {
-                    el.innerHTML = theme === 'guild' ? '⚔️ A-Rank' : '🟡 P2';
+                } else if (text.match(/^(?:#(?:priority\/)?)?P2$|A-Rank|🟡 P2/i)) {
+                    el.innerHTML = isGuild ? '⚔️ A-Rank' : '🟡 P2 (Med)';
                     el.classList.add('qw-card-badge', 'qw-badge-priority');
-                    el.style.background = theme === 'guild' ? 'linear-gradient(135deg, #78350f, #451a03)' : 'rgba(245, 158, 11, 0.18)';
-                    el.style.border = theme === 'guild' ? '1.5px solid #fbbf24' : '1px solid rgba(245, 158, 11, 0.4)';
-                    el.style.color = theme === 'guild' ? '#fde047' : '#f59e0b';
+                    el.style.background = isGuild ? 'linear-gradient(135deg, #78350f, #451a03)' : 'rgba(245, 158, 11, 0.18)';
+                    el.style.border = isGuild ? '1.5px solid #fbbf24' : '1px solid rgba(245, 158, 11, 0.4)';
+                    el.style.color = isGuild ? '#fde047' : '#f59e0b';
                     el.dataset.qwCleanTag = 'P2';
-                } else if (text.match(/#(?:priority\/)?P3\b/i)) {
-                    el.innerHTML = theme === 'guild' ? '🌱 B-Rank' : '🟢 P3';
+                } else if (text.match(/^(?:#(?:priority\/)?)?P3$|B-Rank|🟢 P3/i)) {
+                    el.innerHTML = isGuild ? '🌱 B-Rank' : '🟢 P3 (Low)';
                     el.classList.add('qw-card-badge', 'qw-badge-priority');
-                    el.style.background = theme === 'guild' ? 'linear-gradient(135deg, #14532d, #052e16)' : 'rgba(16, 185, 129, 0.18)';
-                    el.style.border = theme === 'guild' ? '1.5px solid #4ade80' : '1px solid rgba(16, 185, 129, 0.4)';
-                    el.style.color = theme === 'guild' ? '#86efac' : '#10b981';
+                    el.style.background = isGuild ? 'linear-gradient(135deg, #14532d, #052e16)' : 'rgba(16, 185, 129, 0.18)';
+                    el.style.border = isGuild ? '1.5px solid #4ade80' : '1px solid rgba(16, 185, 129, 0.4)';
+                    el.style.color = isGuild ? '#86efac' : '#10b981';
                     el.dataset.qwCleanTag = 'P3';
                 }
             });
 
-            // 3. Process Quest Types (#bug, #feature, #task)
-            item.querySelectorAll('a.tag, span.cm-hashtag').forEach(el => {
-                const text = el.innerText || '';
-                if (text.match(/#(?:type\/)?bug\b/i)) {
-                    el.innerHTML = theme === 'guild' ? '🕷️ Monster' : '🐞 Bug';
+            // 3. Process Quest / Task Types (#bug, #feature, #task)
+            item.querySelectorAll('a.tag, span.cm-hashtag, .qw-badge-type').forEach(el => {
+                const text = (el.dataset.qwCleanTag || el.innerText || '').trim();
+                if (text.match(/^(?:#(?:type\/)?)?bug$|Monster|🐞 Bug/i)) {
+                    el.innerHTML = isGuild ? '🕷️ Monster' : '🐞 Bug';
                     el.classList.add('qw-card-badge', 'qw-badge-type');
-                    el.style.background = theme === 'guild' ? 'linear-gradient(135deg, #581c87, #2e1065)' : 'rgba(168, 85, 247, 0.18)';
-                    el.style.border = theme === 'guild' ? '1.5px solid #c084fc' : '1px solid rgba(168, 85, 247, 0.4)';
-                    el.style.color = theme === 'guild' ? '#e9d5ff' : '#a855f7';
+                    el.style.background = isGuild ? 'linear-gradient(135deg, #581c87, #2e1065)' : 'rgba(168, 85, 247, 0.18)';
+                    el.style.border = isGuild ? '1.5px solid #c084fc' : '1px solid rgba(168, 85, 247, 0.4)';
+                    el.style.color = isGuild ? '#e9d5ff' : '#a855f7';
                     el.dataset.qwCleanTag = 'bug';
-                } else if (text.match(/#(?:type\/)?feature\b/i)) {
-                    el.innerHTML = theme === 'guild' ? '💎 Artifact' : '✨ Feature';
+                } else if (text.match(/^(?:#(?:type\/)?)?feature$|Artifact|✨ Feature/i)) {
+                    el.innerHTML = isGuild ? '💎 Artifact' : '✨ Feature';
                     el.classList.add('qw-card-badge', 'qw-badge-type');
-                    el.style.background = theme === 'guild' ? 'linear-gradient(135deg, #1e3a8a, #172554)' : 'rgba(59, 130, 246, 0.18)';
-                    el.style.border = theme === 'guild' ? '1.5px solid #60a5fa' : '1px solid rgba(59, 130, 246, 0.4)';
-                    el.style.color = theme === 'guild' ? '#bfdbfe' : '#3b82f6';
+                    el.style.background = isGuild ? 'linear-gradient(135deg, #1e3a8a, #172554)' : 'rgba(59, 130, 246, 0.18)';
+                    el.style.border = isGuild ? '1.5px solid #60a5fa' : '1px solid rgba(59, 130, 246, 0.4)';
+                    el.style.color = isGuild ? '#bfdbfe' : '#3b82f6';
                     el.dataset.qwCleanTag = 'feature';
-                } else if (text.match(/#(?:type\/)?task\b/i)) {
-                    el.innerHTML = theme === 'guild' ? '📜 Commission' : '📋 Task';
+                } else if (text.match(/^(?:#(?:type\/)?)?task$|Commission|📋 Task/i)) {
+                    el.innerHTML = isGuild ? '📜 Commission' : '📋 Task';
                     el.classList.add('qw-card-badge', 'qw-badge-type');
-                    el.style.background = theme === 'guild' ? 'linear-gradient(135deg, #334155, #0f172a)' : 'rgba(100, 116, 139, 0.18)';
-                    el.style.border = theme === 'guild' ? '1.5px solid #94a3b8' : '1px solid rgba(100, 116, 139, 0.4)';
-                    el.style.color = theme === 'guild' ? '#e2e8f0' : '#64748b';
+                    el.style.background = isGuild ? 'linear-gradient(135deg, #334155, #0f172a)' : 'rgba(100, 116, 139, 0.18)';
+                    el.style.border = isGuild ? '1.5px solid #94a3b8' : '1px solid rgba(100, 116, 139, 0.4)';
+                    el.style.color = isGuild ? '#e2e8f0' : '#64748b';
                     el.dataset.qwCleanTag = 'task';
                 }
             });

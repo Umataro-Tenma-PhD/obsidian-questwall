@@ -338,16 +338,22 @@ export class FilterService {
         });
         toolbar.appendChild(resetBtn);
 
-        // Theme Switcher Button
+        // Theme Switcher Button (Concise Naming & Instant Resync)
         const themeBtn = document.createElement('span');
         themeBtn.className = 'questwall-theme-btn';
         themeBtn.setAttribute('role', 'button');
         themeBtn.setAttribute('tabindex', '0');
-        themeBtn.innerHTML = isGuild ? '✨ Switch to Default (Sleek Glass)' : '⚔️ Switch to Guild RPG Theme';
+        themeBtn.innerHTML = isGuild ? '✨ Switch to Default' : '⚔️ Switch to Guild';
         
         const toggleTheme = async () => {
             this.plugin.settings.theme = isGuild ? 'sleek' : 'guild';
             await this.plugin.saveSettings();
+            
+            // Instantly resync all open boards right away without navigation
+            document.querySelectorAll('.kanban-plugin__board').forEach(b => {
+                if (this.plugin.cardService) this.plugin.cardService.syncBoardBadges(b);
+                this.applyFiltersAndSort(b);
+            });
         };
 
         themeBtn.addEventListener('click', toggleTheme);
