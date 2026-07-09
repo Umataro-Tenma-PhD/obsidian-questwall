@@ -1,11 +1,11 @@
-# ⚔️ Questwall 2.0 — Gamified Dual-Theme Kanban Engine for Obsidian
+# ⚔️ Questwall 2.0 — Kanban Engine for Obsidian
 
 [![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![WCAG 2.1 AA](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA-emerald.svg)](https://www.w3.org/WAI/WCAG21/quickref/)
 [![Obsidian Plugin](https://img.shields.io/badge/Obsidian-%3E%3D1.0.0-purple.svg)](https://obsidian.md)
 
-**Questwall** transforms standard Obsidian Kanban boards (`obsidian-kanban`) into interactive, high-fidelity **Adventure Guild RPG** mission boards or **Sleek Glassmorphism** startup command centers.
+**Questwall** provides a slightly more fun way to manage small teams locally on Obsidian with basic team management with roles, tagging, search, and filtering of cards on a kanban board.
 
 Built from the ground up with **zero polling intervals**, **deterministic DOM interception**, and **WCAG 2.1 AA accessibility**, Questwall is designed for engineering velocity and gamified team alignment.
 
