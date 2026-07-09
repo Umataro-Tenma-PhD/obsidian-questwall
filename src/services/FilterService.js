@@ -111,7 +111,7 @@ export class FilterService {
 
         allMembers.forEach(member => {
             const name = member.name.trim();
-            const icon = member.icon || '👤';
+            const icon = isGuild ? (member.icon || '👤') : '👤';
             const color = member.color || '#3b82f6';
             const rgb = this.plugin.themeService.hexToRgb(color);
 
@@ -163,7 +163,7 @@ export class FilterService {
         toolbar.appendChild(assigneesSec);
         toolbar.appendChild(createDivider());
 
-        // 2. Priority / Threat Rank Section
+        // 2. Priority / Threat Rank Section (Pure Guild terms vs Pure Default terms!)
         const prioritySec = document.createElement('div');
         prioritySec.className = 'questwall-toolbar-section';
         const priorityLabel = document.createElement('span');
@@ -172,9 +172,9 @@ export class FilterService {
         prioritySec.appendChild(priorityLabel);
 
         const priorities = isGuild ? [
-            { id: 'P1', label: '🐉 S-Rank (#P1)', color: '#f87171' },
-            { id: 'P2', label: '⚔️ A-Rank (#P2)', color: '#fbbf24' },
-            { id: 'P3', label: '🌱 B-Rank (#P3)', color: '#4ade80' }
+            { id: 'P1', label: '🐉 S-Rank', color: '#f87171' },
+            { id: 'P2', label: '⚔️ A-Rank', color: '#fbbf24' },
+            { id: 'P3', label: '🌱 B-Rank', color: '#4ade80' }
         ] : [
             { id: 'P1', label: '🔴 P1 (High)', color: '#ef4444' },
             { id: 'P2', label: '🟡 P2 (Med)', color: '#f59e0b' },
@@ -218,7 +218,7 @@ export class FilterService {
         toolbar.appendChild(prioritySec);
         toolbar.appendChild(createDivider());
 
-        // 3. Quest / Task Types Section
+        // 3. Quest / Task Types Section (Pure Guild terms vs Pure Default terms!)
         const typeSec = document.createElement('div');
         typeSec.className = 'questwall-toolbar-section';
         const typeLabel = document.createElement('span');
@@ -227,9 +227,9 @@ export class FilterService {
         typeSec.appendChild(typeLabel);
 
         const types = isGuild ? [
-            { id: 'bug', label: '🕷️ Monster (#bug)' },
-            { id: 'feature', label: '💎 Artifact (#feature)' },
-            { id: 'task', label: '📜 Commission (#task)' }
+            { id: 'bug', label: '🕷️ Monster' },
+            { id: 'feature', label: '💎 Artifact' },
+            { id: 'task', label: '📜 Commission' }
         ] : [
             { id: 'bug', label: '🐞 Bug' },
             { id: 'feature', label: '✨ Feature' },
@@ -338,7 +338,7 @@ export class FilterService {
         });
         toolbar.appendChild(resetBtn);
 
-        // Theme Switcher Button (Concise Naming & Instant Resync)
+        // Theme Switcher Button
         const themeBtn = document.createElement('span');
         themeBtn.className = 'questwall-theme-btn';
         themeBtn.setAttribute('role', 'button');
@@ -349,7 +349,6 @@ export class FilterService {
             this.plugin.settings.theme = isGuild ? 'sleek' : 'guild';
             await this.plugin.saveSettings();
             
-            // Instantly resync all open boards right away without navigation
             document.querySelectorAll('.kanban-plugin__board').forEach(b => {
                 if (this.plugin.cardService) this.plugin.cardService.syncBoardBadges(b);
                 this.applyFiltersAndSort(b);

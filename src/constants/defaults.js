@@ -15,21 +15,21 @@ export const DEFAULT_SETTINGS = {
     ]
 };
 
-// Curated Engineering & Product Role Registry with Industry-Standard Descriptions
+// Curated Engineering & Product Role Registry with Industry-Standard Descriptions and Corporate/Guild Mappings
 export const ADVENTURER_CLASSES = [
-    { id: 'Archmage', label: '🧙‍♂️ Archmage — AI Architect & LLM Systems', desc: 'Agent orchestration, prompt architecture, and AI pipeline integration.', icon: '🧙‍♂️' },
-    { id: 'Paladin', label: '🛡️ Paladin — Site Reliability & DevOps', desc: 'Infrastructure resilience, high-availability uptime, and system alignment.', icon: '🛡️' },
-    { id: 'Sorcerer', label: '🔥 Sorcerer — Core Backend API & Distributed Systems', desc: 'Microservices, API prototyping, and scalable database architecture.', icon: '🔥' },
-    { id: 'Knight', label: '🐴 Knight — Security, Governance & Risk', desc: 'Code security auditing, IAM access policies, and enterprise compliance.', icon: '🐴' },
-    { id: 'Artificer', label: '⚙️ Artificer — Systems Engineering & Tooling', desc: 'CI/CD deployment pipelines, developer experience, and cloud build tools.', icon: '⚙️' },
-    { id: 'Ranger', label: '⚔️ Ranger — Full-Stack Velocity & Workflow Automation', desc: 'End-to-end feature exploration, cross-cutting workflows, and rapid delivery.', icon: '⚔️' },
-    { id: 'Alchemist', label: '🧪 Alchemist — Data Engineering & RAG Pipelines', desc: 'Vector databases, ETL transformations, ML pipelines, and analytics.', icon: '🧪' },
-    { id: 'Druid', label: '🌿 Druid — Product Ownership & Agile Scrum Mastery', desc: 'Sprint planning, backlog grooming, roadmap priorities, and team velocity.', icon: '🌿' },
-    { id: 'Rogue', label: '🗡️ Rogue — Performance Optimization & Debugging', desc: 'Memory leak profiling, latency reduction, and red-team vulnerability testing.', icon: '🗡️' },
-    { id: 'Bard', label: '🪕 Bard — UX/UI Design & Product Synthesis', desc: 'Design systems, interactive user flows, component libraries, and documentation.', icon: '🪕' },
-    { id: 'Cleric', label: '✨ Cleric — QA Engineering & Test Automation', desc: 'Test automation frameworks, regression prevention, and continuous telemetry.', icon: '✨' },
-    { id: 'Monk', label: '🥊 Monk — Frontend Core & State Architecture', desc: 'Modern web frameworks, responsive layouts, and deterministic state management.', icon: '🥊' },
-    { id: 'Necromancer', label: '💀 Necromancer — Legacy Code Modernization & Refactoring', desc: 'Technical debt elimination, codebase migrations, and clean refactoring.', icon: '💀' }
+    { id: 'Archmage', corpTitle: 'AI Architect', corpLabel: 'AI Architect & LLM Systems', label: '🧙‍♂️ Archmage — AI Architect & LLM Systems', desc: 'Agent orchestration, prompt architecture, and AI pipeline integration.', icon: '🧙‍♂️' },
+    { id: 'Paladin', corpTitle: 'SRE / DevOps', corpLabel: 'Site Reliability & DevOps', label: '🛡️ Paladin — Site Reliability & DevOps', desc: 'Infrastructure resilience, high-availability uptime, and system alignment.', icon: '🛡️' },
+    { id: 'Sorcerer', corpTitle: 'Backend API', corpLabel: 'Core Backend API & Distributed Systems', label: '🔥 Sorcerer — Core Backend API & Distributed Systems', desc: 'Microservices, API prototyping, and scalable database architecture.', icon: '🔥' },
+    { id: 'Knight', corpTitle: 'Security & Governance', corpLabel: 'Security, Governance & Risk', label: '🐴 Knight — Security, Governance & Risk', desc: 'Code security auditing, IAM access policies, and enterprise compliance.', icon: '🐴' },
+    { id: 'Artificer', corpTitle: 'Systems Engineering', corpLabel: 'Systems Engineering & Tooling', label: '⚙️ Artificer — Systems Engineering & Tooling', desc: 'CI/CD deployment pipelines, developer experience, and cloud build tools.', icon: '⚙️' },
+    { id: 'Ranger', corpTitle: 'Full-Stack Automation', corpLabel: 'Full-Stack Velocity & Workflow Automation', label: '⚔️ Ranger — Full-Stack Velocity & Workflow Automation', desc: 'End-to-end feature exploration, cross-cutting workflows, and rapid delivery.', icon: '⚔️' },
+    { id: 'Alchemist', corpTitle: 'Data Engineering', corpLabel: 'Data Engineering & RAG Pipelines', label: '🧪 Alchemist — Data Engineering & RAG Pipelines', desc: 'Vector databases, ETL transformations, ML pipelines, and analytics.', icon: '🧪' },
+    { id: 'Druid', corpTitle: 'Agile Scrum Mastery', corpLabel: 'Product Ownership & Agile Scrum Mastery', label: '🌿 Druid — Product Ownership & Agile Scrum Mastery', desc: 'Sprint planning, backlog grooming, roadmap priorities, and team velocity.', icon: '🌿' },
+    { id: 'Rogue', corpTitle: 'Performance Optimization', corpLabel: 'Performance Optimization & Debugging', label: '🗡️ Rogue — Performance Optimization & Debugging', desc: 'Memory leak profiling, latency reduction, and red-team vulnerability testing.', icon: '🗡️' },
+    { id: 'Bard', corpTitle: 'UX/UI Design', corpLabel: 'UX/UI Design & Product Synthesis', label: '🪕 Bard — UX/UI Design & Product Synthesis', desc: 'Design systems, interactive user flows, component libraries, and documentation.', icon: '🪕' },
+    { id: 'Cleric', corpTitle: 'QA Engineering', corpLabel: 'QA Engineering & Test Automation', label: '✨ Cleric — QA Engineering & Test Automation', desc: 'Test automation frameworks, regression prevention, and continuous telemetry.', icon: '✨' },
+    { id: 'Monk', corpTitle: 'Frontend Core', corpLabel: 'Frontend Core & State Architecture', label: '🥊 Monk — Frontend Core & State Architecture', desc: 'Modern web frameworks, responsive layouts, and deterministic state management.', icon: '🥊' },
+    { id: 'Necromancer', corpTitle: 'Legacy Modernization', corpLabel: 'Legacy Code Modernization & Refactoring', label: '💀 Necromancer — Legacy Code Modernization & Refactoring', desc: 'Technical debt elimination, codebase migrations, and clean refactoring.', icon: '💀' }
 ];
 
 export const LANE_COLORS = {
@@ -42,29 +42,30 @@ export const LANE_COLORS = {
 };
 
 /**
- * Computes consolidated roles, class titles, and icons from a role array.
+ * Computes consolidated roles, class titles, and icons from a role array depending on active theme.
  * @param {string[]|string} rolesArray
+ * @param {boolean} isGuild
  * @returns {{ roles: string[], classTitle: string, icon: string }}
  */
-export function computeRolesDisplay(rolesArray) {
+export function computeRolesDisplay(rolesArray, isGuild = true) {
     const roles = Array.isArray(rolesArray) ? rolesArray : [rolesArray].filter(Boolean);
     if (!roles || !roles.length) {
-        return { roles: ['Paladin'], classTitle: 'Paladin', icon: '🛡️' };
+        return { roles: isGuild ? ['Paladin'] : ['SRE / DevOps'], classTitle: isGuild ? 'Paladin' : 'SRE / DevOps', icon: isGuild ? '🛡️' : '👤' };
     }
     const titles = [];
     const icons = [];
     roles.forEach(r => {
         const found = ADVENTURER_CLASSES.find(c => c.id === r);
         if (found) {
-            titles.push(found.id);
-            icons.push(found.icon);
+            titles.push(isGuild ? found.id : found.corpTitle);
+            if (isGuild) icons.push(found.icon);
         } else if (r) {
             titles.push(r);
         }
     });
     return {
         roles: roles,
-        classTitle: titles.join(' ') || 'Team Member',
+        classTitle: titles.join(', ') || 'Team Member',
         icon: icons.join('') || '👤'
     };
 }
@@ -81,9 +82,9 @@ export function getPureCardTitle(text) {
         .replace(/\[\[@[^\]]+\]\]/gi, '')
         .replace(/@[A-Za-z0-9_-]+/g, '')
         .replace(/\b(🐞\s*)+Bug\b/gi, '')
-        .replace(/\b(🔴\s*)+P1\b/gi, '')
-        .replace(/\b(🟡\s*)+P2\b/gi, '')
-        .replace(/\b(🟢\s*)+P3\b/gi, '')
+        .replace(/\b(🔴\s*)+P1(\s*\(High\))?\b/gi, '')
+        .replace(/\b(🟡\s*)+P2(\s*\(Med\))?\b/gi, '')
+        .replace(/\b(🟢\s*)+P3(\s*\(Low\))?\b/gi, '')
         .replace(/\b(✨\s*\+?\s*)+Feature\b/gi, '')
         .replace(/\b(📋\s*)+Task\b/gi, '')
         .replace(/🐉\s*S-Rank(\s*\(#P1\))?/gi, '')

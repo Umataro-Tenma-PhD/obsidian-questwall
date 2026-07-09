@@ -5,7 +5,7 @@
  */
 
 import { Notice } from 'obsidian';
-import { cleanRawTagId, getPureCardTitle } from '../constants/defaults.js';
+import { cleanRawTagId, getPureCardTitle, computeRolesDisplay } from '../constants/defaults.js';
 
 export class CardService {
     /**
@@ -44,12 +44,13 @@ export class CardService {
                     if (this.plugin.settings && Array.isArray(this.plugin.settings.teamMembers)) {
                         member = this.plugin.settings.teamMembers.find(m => m.name.toLowerCase() === clean.toLowerCase());
                     }
-                    const icon = member ? (member.icon || '👤') : '👤';
+                    const icon = (isGuild && member) ? (member.icon || '👤') : '👤';
                     const label = member ? member.name : clean;
                     
                     let rolesStr = '';
                     if (member && member.roles && member.roles.length) {
-                        rolesStr = isGuild ? ` • ${member.roles.join(', ')}` : ` • ${member.classTitle || 'Team Member'}`;
+                        const computed = computeRolesDisplay(member.roles, isGuild);
+                        rolesStr = ` • ${computed.classTitle}`;
                     } else if (member && member.classTitle) {
                         rolesStr = ` • ${member.classTitle}`;
                     }
@@ -65,7 +66,7 @@ export class CardService {
                 }
             });
 
-            // 2. Process Priority Rankings (#P1, #P2, #P3)
+            // 2. Process Priority Rankings (#P1, #P2, #P3) - NO parentheses mapping under Guild!
             item.querySelectorAll('a.tag, span.cm-hashtag, .qw-badge-priority').forEach(el => {
                 const text = (el.dataset.qwCleanTag || el.innerText || '').trim();
                 if (text.match(/^(?:#(?:priority\/)?)?P1$|S-Rank|🔴 P1/i)) {
@@ -92,7 +93,7 @@ export class CardService {
                 }
             });
 
-            // 3. Process Quest / Task Types (#bug, #feature, #task)
+            // 3. Process Quest / Task Types (#bug, #feature, #task) - NO parentheses mapping under Guild!
             item.querySelectorAll('a.tag, span.cm-hashtag, .qw-badge-type').forEach(el => {
                 const text = (el.dataset.qwCleanTag || el.innerText || '').trim();
                 if (text.match(/^(?:#(?:type\/)?)?bug$|Monster|🐞 Bug/i)) {

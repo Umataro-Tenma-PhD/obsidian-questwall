@@ -1,104 +1,11 @@
 /**
  * @file src/ui/Modals.js
- * @description Accessible, WCAG 2.1 AA compliant modal dialogs for color tinting, task assignment, and team member editing.
+ * @description Interactive Obsidian Modals for quick quest assignment, multi-role editing, and agile workflow setup.
  * @author Antigravity Engineering
  */
 
 import { Modal, Notice } from 'obsidian';
-import { LANE_COLORS, ADVENTURER_CLASSES, computeRolesDisplay } from '../constants/defaults.js';
-
-export class LaneColorModal extends Modal {
-    /**
-     * @param {object} app
-     * @param {function} onSelect
-     */
-    constructor(app, onSelect) {
-        super(app);
-        this.onSelect = onSelect;
-    }
-
-    onOpen() {
-        const { contentEl } = this;
-        contentEl.empty();
-        contentEl.style.padding = '24px';
-        contentEl.style.maxWidth = '420px';
-
-        contentEl.createEl('h3', { text: '🎨 Select List Tint Color', attr: { style: 'margin-top: 0; margin-bottom: 16px; font-weight: 700;' } });
-
-        const grid = contentEl.createDiv({ attr: { style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 12px;' } });
-
-        Object.keys(LANE_COLORS).forEach(key => {
-            const colorInfo = LANE_COLORS[key];
-            const btn = grid.createEl('button', {
-                attr: {
-                    role: 'button',
-                    tabindex: '0',
-                    'aria-label': `Select ${colorInfo.label}`,
-                    style: `
-                        padding: 14px 12px;
-                        border-radius: 12px;
-                        border: 2px solid ${colorInfo.border};
-                        background: ${colorInfo.bg};
-                        color: var(--text-normal);
-                        font-weight: 600;
-                        font-size: 0.9rem;
-                        cursor: pointer;
-                        transition: all 0.2s ease;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        gap: 8px;
-                    `
-                }
-            });
-            btn.innerHTML = `<span>●</span> <span>${colorInfo.label}</span>`;
-
-            const selectThisColor = () => {
-                this.onSelect(key);
-                this.close();
-            };
-
-            btn.addEventListener('click', selectThisColor);
-            btn.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    selectThisColor();
-                }
-            });
-        });
-
-        const resetBtn = contentEl.createEl('button', {
-            text: '🔄 Reset to Default / Clear Tint',
-            attr: {
-                role: 'button',
-                tabindex: '0',
-                style: 'margin-top: 18px; width: 100%; padding: 10px; border-radius: 10px; background: rgba(239, 68, 68, 0.12); color: var(--text-error); border: 1px solid rgba(239, 68, 68, 0.35); font-weight: 600; cursor: pointer;'
-            }
-        });
-
-        const selectReset = () => {
-            this.onSelect('reset');
-            this.close();
-        };
-
-        resetBtn.addEventListener('click', selectReset);
-        resetBtn.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                selectReset();
-            }
-        });
-
-        const firstBtn = grid.querySelector('button');
-        if (firstBtn) setTimeout(() => firstBtn.focus(), 50);
-    }
-
-    onClose() {
-        const { contentEl } = this;
-        contentEl.empty();
-    }
-}
-
+import { ADVENTURER_CLASSES, computeRolesDisplay } from '../constants/defaults.js';
 
 export class QuickAssignModal extends Modal {
     /**
@@ -112,22 +19,35 @@ export class QuickAssignModal extends Modal {
         super(app);
         this.settings = settings || {};
         this.cardItem = cardItem;
-        this.cleanTitle = cleanTitle;
+        this.cleanTitle = cleanTitle || 'Untitled Quest';
         this.onSave = onSave;
 
         this.selectedAssignee = null;
+        if (cardItem) {
+            const assigneeTags = cardItem.querySelectorAll('.qw-badge-assignee, a.tag, a.internal-link[href*="@"], a.internal-link[data-href*="@"], span.cm-hashtag');
+            assigneeTags.forEach(t => {
+                const raw = t.dataset.qwCleanTag || t.getAttribute('href') || t.getAttribute('data-href') || t.innerText || '';
+                const clean = raw.replace(/^[#@]+/, '').replace(/^(?:assignee\/)/i, '').trim();
+                if (clean && !['bug', 'feature', 'task', 'P1', 'P2', 'P3', 'security', 'tech-debt'].includes(clean)) {
+                    if (/^[A-Za-z_-][A-Za-z0-9_-]*$/.test(clean)) {
+                        this.selectedAssignee = `[[@${clean}]]`;
+                    }
+                }
+            });
+        }
+
         this.selectedPriority = null;
         this.selectedType = null;
 
         if (cardItem) {
             const text = cardItem.innerText || '';
-            if (text.match(/#P1\b/i)) this.selectedPriority = '#P1';
-            else if (text.match(/#P2\b/i)) this.selectedPriority = '#P2';
-            else if (text.match(/#P3\b/i)) this.selectedPriority = '#P3';
+            if (text.match(/#P1\b/i) || text.match(/S-Rank/i) || text.match(/P1/i)) this.selectedPriority = '#P1';
+            else if (text.match(/#P2\b/i) || text.match(/A-Rank/i) || text.match(/P2/i)) this.selectedPriority = '#P2';
+            else if (text.match(/#P3\b/i) || text.match(/B-Rank/i) || text.match(/P3/i)) this.selectedPriority = '#P3';
 
-            if (text.match(/#bug\b/i)) this.selectedType = '#bug';
-            else if (text.match(/#feature\b/i)) this.selectedType = '#feature';
-            else if (text.match(/#task\b/i)) this.selectedType = '#task';
+            if (text.match(/#bug\b/i) || text.match(/Monster/i) || text.match(/Bug/i)) this.selectedType = '#bug';
+            else if (text.match(/#feature\b/i) || text.match(/Artifact/i) || text.match(/Feature/i)) this.selectedType = '#feature';
+            else if (text.match(/#task\b/i) || text.match(/Commission/i) || text.match(/Task/i)) this.selectedType = '#task';
         }
     }
 
@@ -142,7 +62,7 @@ export class QuickAssignModal extends Modal {
 
         contentEl.createEl('h3', { text: `⚡ Quick Assign: "${this.cleanTitle}"`, attr: { style: 'margin-top: 0; margin-bottom: 18px; font-weight: 700;' } });
 
-        contentEl.createEl('h4', { text: isGuild ? '🗡️ Select Adventurer / Party Member' : 'Assignee / Team Member', attr: { style: 'margin-bottom: 8px; font-size: 0.92rem;' } });
+        contentEl.createEl('h4', { text: isGuild ? '🗡️ Select Party Member' : 'Assignee / Team Member', attr: { style: 'margin-bottom: 8px; font-size: 0.92rem;' } });
         const assigneeContainer = contentEl.createDiv({ attr: { style: 'display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px;' } });
 
         const members = Array.isArray(this.settings.teamMembers) ? this.settings.teamMembers.filter(m => m.name && m.name.trim()) : [];
@@ -150,7 +70,7 @@ export class QuickAssignModal extends Modal {
             assigneeContainer.empty();
             members.forEach(m => {
                 const name = m.name.trim();
-                const icon = m.icon || '👤';
+                const icon = isGuild ? (m.icon || '👤') : '👤';
                 const tag = `[[@${name}]]`;
                 const isSel = this.selectedAssignee === tag;
 
@@ -219,9 +139,9 @@ export class QuickAssignModal extends Modal {
         contentEl.createEl('h4', { text: isGuild ? '🔥 Threat Level / Rank' : 'Priority Level', attr: { style: 'margin-bottom: 8px; font-size: 0.92rem;' } });
         const prioContainer = contentEl.createDiv({ attr: { style: 'display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px;' } });
         const prioOptions = isGuild ? [
-            { id: '#P1', label: '🐉 S-Rank (#P1)' },
-            { id: '#P2', label: '⚔️ A-Rank (#P2)' },
-            { id: '#P3', label: '🌱 B-Rank (#P3)' }
+            { id: '#P1', label: '🐉 S-Rank' },
+            { id: '#P2', label: '⚔️ A-Rank' },
+            { id: '#P3', label: '🌱 B-Rank' }
         ] : [
             { id: '#P1', label: '🔴 P1 (High)' },
             { id: '#P2', label: '🟡 P2 (Med)' },
@@ -247,6 +167,7 @@ export class QuickAssignModal extends Modal {
                             border: 1.5px solid ${isSel ? 'var(--interactive-accent)' : 'var(--background-modifier-border)'};
                             background: ${isSel ? 'var(--interactive-accent)' : 'var(--background-secondary)'};
                             color: ${isSel ? 'var(--text-on-accent)' : 'var(--text-normal)'};
+                            transition: all 0.2s ease;
                         `
                     }
                 });
@@ -268,12 +189,12 @@ export class QuickAssignModal extends Modal {
         };
         renderPrioButtons();
 
-        contentEl.createEl('h4', { text: isGuild ? '📜 Quest Type / Contract' : 'Task Type', attr: { style: 'margin-bottom: 8px; font-size: 0.92rem;' } });
+        contentEl.createEl('h4', { text: isGuild ? '📜 Contract / Quest Type' : 'Task Type', attr: { style: 'margin-bottom: 8px; font-size: 0.92rem;' } });
         const typeContainer = contentEl.createDiv({ attr: { style: 'display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px;' } });
         const typeOptions = isGuild ? [
-            { id: '#bug', label: '🕷️ Monster (#bug)' },
-            { id: '#feature', label: '💎 Artifact (#feature)' },
-            { id: '#task', label: '📜 Commission (#task)' }
+            { id: '#bug', label: '🕷️ Monster' },
+            { id: '#feature', label: '💎 Artifact' },
+            { id: '#task', label: '📜 Commission' }
         ] : [
             { id: '#bug', label: '🐞 Bug' },
             { id: '#feature', label: '✨ Feature' },
@@ -299,6 +220,7 @@ export class QuickAssignModal extends Modal {
                             border: 1.5px solid ${isSel ? 'var(--interactive-accent)' : 'var(--background-modifier-border)'};
                             background: ${isSel ? 'var(--interactive-accent)' : 'var(--background-secondary)'};
                             color: ${isSel ? 'var(--text-on-accent)' : 'var(--text-normal)'};
+                            transition: all 0.2s ease;
                         `
                     }
                 });
@@ -320,7 +242,8 @@ export class QuickAssignModal extends Modal {
         };
         renderTypeButtons();
 
-        this.previewEl = contentEl.createDiv({ attr: { style: 'padding: 12px 16px; border-radius: 10px; background: var(--background-primary-alt); border: 1px solid var(--background-modifier-border); margin-bottom: 20px; font-size: 0.9rem; font-family: monospace;' } });
+        const previewContainer = contentEl.createDiv({ attr: { style: 'padding: 12px 14px; border-radius: 8px; background: var(--background-secondary); border: 1px solid var(--background-modifier-border); margin-bottom: 20px; font-size: 0.84rem;' } });
+        this.previewEl = previewContainer.createDiv();
         this.updatePreview();
 
         const actions = contentEl.createDiv({ attr: { style: 'display: flex; justify-content: flex-end; gap: 10px;' } });
@@ -328,17 +251,17 @@ export class QuickAssignModal extends Modal {
         cancelBtn.addEventListener('click', () => this.close());
 
         const saveBtn = actions.createEl('button', {
-            text: '💾 Save Assignment',
+            text: isGuild ? '⚡ Dispatch Quest' : '💾 Save Changes',
             attr: {
                 role: 'button',
                 tabindex: '0',
-                style: 'padding: 8px 18px; border-radius: 8px; background: var(--interactive-accent); color: var(--text-on-accent); font-weight: 700; border: none; cursor: pointer;'
+                style: 'padding: 8px 20px; border-radius: 8px; background: var(--interactive-accent); color: var(--text-on-accent); font-weight: 700; border: none; cursor: pointer;'
             }
         });
 
         const triggerSave = () => {
             const tags = [this.selectedAssignee, this.selectedPriority, this.selectedType].filter(Boolean).join(' ');
-            this.onSave(tags);
+            if (this.onSave) this.onSave(tags);
             this.close();
         };
 
@@ -387,6 +310,9 @@ export class EditMemberModal extends Modal {
         contentEl.style.padding = '24px';
         contentEl.style.maxWidth = '640px';
 
+        const theme = (this.plugin.settings && this.plugin.settings.theme) || 'sleek';
+        const isGuild = theme === 'guild';
+
         contentEl.createEl('h3', { text: `✏️ Edit Team Member: "${this.member.name}"`, attr: { style: 'margin-top: 0; margin-bottom: 18px; font-weight: 700;' } });
 
         // Name & Color
@@ -396,8 +322,8 @@ export class EditMemberModal extends Modal {
         topRow.createEl('label', { text: 'Badge Color:', attr: { style: 'font-weight: 600; margin-left: 12px;' } });
         const colorInput = topRow.createEl('input', { type: 'color', value: this.member.color || '#3b82f6', attr: { style: 'width: 46px; height: 38px; padding: 0; border: none; cursor: pointer; border-radius: 6px;' } });
 
-        // Role Selector with Industry Standard Descriptions
-        contentEl.createEl('div', { text: 'Select Engineering & Product Roles:', attr: { style: 'font-weight: 600; font-size: 0.9rem; margin-bottom: 10px; color: var(--text-normal);' } });
+        // Role Selector strictly adapting to Default (pure corporate) vs Guild
+        contentEl.createEl('div', { text: isGuild ? 'Select Adventurer Classes / Roles:' : 'Select Engineering & Product Roles:', attr: { style: 'font-weight: 600; font-size: 0.9rem; margin-bottom: 10px; color: var(--text-normal);' } });
         const roleGrid = contentEl.createDiv({ attr: { style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 380px; overflow-y: auto; padding-right: 6px; margin-bottom: 22px;' } });
 
         const renderRoleGrid = () => {
@@ -421,7 +347,7 @@ export class EditMemberModal extends Modal {
                 });
 
                 const top = item.createDiv({ attr: { style: 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;' } });
-                top.createDiv({ text: c.label, attr: { style: `font-weight: 700; font-size: 0.86rem; color: ${isSel ? 'var(--interactive-accent)' : 'var(--text-normal)'};` } });
+                top.createDiv({ text: isGuild ? c.label : c.corpLabel, attr: { style: `font-weight: 700; font-size: 0.86rem; color: ${isSel ? 'var(--interactive-accent)' : 'var(--text-normal)'};` } });
                 const check = top.createSpan({ text: isSel ? '✓' : '+', attr: { style: `font-weight: bold; color: ${isSel ? 'var(--interactive-accent)' : 'var(--text-muted)'};` } });
 
                 item.createDiv({ text: c.desc, attr: { style: 'font-size: 0.78rem; color: var(--text-muted); line-height: 1.3;' } });
@@ -458,12 +384,11 @@ export class EditMemberModal extends Modal {
 
         const triggerSave = async () => {
             const newName = nameInput.value.trim();
-            if (!name) {
+            if (!newName) {
                 new Notice('Name cannot be empty.');
                 return;
             }
 
-            // Check if name changed and conflicts
             if (newName.toLowerCase() !== this.member.name.toLowerCase() &&
                 this.plugin.settings.teamMembers.some(m => m.name.toLowerCase() === newName.toLowerCase())) {
                 new Notice('Another team member already has this name.');
@@ -471,9 +396,8 @@ export class EditMemberModal extends Modal {
             }
 
             const rolesArr = Array.from(this.selectedRoles);
-            const computed = computeRolesDisplay(rolesArr);
+            const computed = computeRolesDisplay(rolesArr, isGuild);
 
-            // Update member object in settings array
             const idx = this.plugin.settings.teamMembers.findIndex(m => m.name === this.member.name);
             if (idx !== -1) {
                 this.plugin.settings.teamMembers[idx] = {
@@ -486,7 +410,7 @@ export class EditMemberModal extends Modal {
             }
 
             await this.plugin.saveSettings();
-            new Notice(`Updated ${computed.icon} ${newName}'s roles successfully!`);
+            new Notice(`Roles updated for ${newName}!`);
             if (this.onSave) this.onSave();
             this.close();
         };
@@ -498,6 +422,8 @@ export class EditMemberModal extends Modal {
                 triggerSave();
             }
         });
+
+        setTimeout(() => saveBtn.focus(), 50);
     }
 
     onClose() {
