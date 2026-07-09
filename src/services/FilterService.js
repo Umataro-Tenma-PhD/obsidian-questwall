@@ -1,6 +1,6 @@
 /**
  * @file src/services/FilterService.js
- * @description Manages interactive board toolbars, multi-dimensional filtering, focus mode dimming, and card sorting.
+ * @description Manages interactive board toolbars, multi-dimensional filtering, focus mode dimming, and comprehensive card sorting.
  * @author Antigravity Engineering
  */
 
@@ -49,7 +49,7 @@ export class FilterService {
     }
 
     /**
-     * Builds and injects the interactive filtering and sorting toolbar above a Kanban board.
+     * Builds and injects the interactive filtering and comprehensive sorting toolbar above a Kanban board.
      * @param {HTMLElement} container
      * @param {HTMLElement} board
      */
@@ -58,13 +58,14 @@ export class FilterService {
 
         const toolbar = document.createElement('div');
         toolbar.className = 'questwall-toolbar';
-        const theme = (this.plugin.settings && this.plugin.settings.theme) || 'guild';
+        const theme = (this.plugin.settings && this.plugin.settings.theme) || 'sleek';
+        const isGuild = theme === 'guild';
 
         const labels = {
-            assignee: theme === 'guild' ? '🗡️ Adventurers:' : 'Assignee / Team:',
-            priority: theme === 'guild' ? '🔥 Threat Rank:' : 'Priority / Rank:',
-            type: theme === 'guild' ? '📜 Quest Type:' : 'Quest Type:',
-            sort: theme === 'guild' ? '⚖️ Order:' : 'Order By:'
+            assignee: isGuild ? '🗡️ Party:' : 'Team:',
+            priority: isGuild ? '🔥 Threat:' : 'Priority:',
+            type: isGuild ? '📜 Contract:' : 'Type:',
+            sort: isGuild ? '⚖️ Order By:' : 'Sort By:'
         };
 
         // Helper to create sections
@@ -170,7 +171,7 @@ export class FilterService {
         priorityLabel.innerText = labels.priority;
         prioritySec.appendChild(priorityLabel);
 
-        const priorities = theme === 'guild' ? [
+        const priorities = isGuild ? [
             { id: 'P1', label: '🐉 S-Rank (#P1)', color: '#f87171' },
             { id: 'P2', label: '⚔️ A-Rank (#P2)', color: '#fbbf24' },
             { id: 'P3', label: '🌱 B-Rank (#P3)', color: '#4ade80' }
@@ -217,7 +218,7 @@ export class FilterService {
         toolbar.appendChild(prioritySec);
         toolbar.appendChild(createDivider());
 
-        // 3. Quest Types Section
+        // 3. Quest / Task Types Section
         const typeSec = document.createElement('div');
         typeSec.className = 'questwall-toolbar-section';
         const typeLabel = document.createElement('span');
@@ -225,7 +226,7 @@ export class FilterService {
         typeLabel.innerText = labels.type;
         typeSec.appendChild(typeLabel);
 
-        const types = theme === 'guild' ? [
+        const types = isGuild ? [
             { id: 'bug', label: '🕷️ Monster (#bug)' },
             { id: 'feature', label: '💎 Artifact (#feature)' },
             { id: 'task', label: '📜 Commission (#task)' }
@@ -272,11 +273,11 @@ export class FilterService {
         toolbar.appendChild(typeSec);
         toolbar.appendChild(createDivider());
 
-        // 4. Search & Sort Controls
+        // 4. Search & Comprehensive Sorting Controls
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
         searchInput.className = 'questwall-search-input';
-        searchInput.placeholder = theme === 'guild' ? '🔍 Search Grimoire...' : '🔍 Search cards...';
+        searchInput.placeholder = isGuild ? '🔍 Search Quests...' : '🔍 Search board tasks...';
         searchInput.value = this.activeFilters.search;
         searchInput.addEventListener('input', (e) => {
             this.activeFilters.search = e.target.value.toLowerCase().trim();
@@ -293,12 +294,19 @@ export class FilterService {
 
         const sortSelect = document.createElement('select');
         sortSelect.className = 'questwall-sort-select';
+        sortSelect.style.padding = '5px 10px';
+        sortSelect.style.borderRadius = '8px';
+        sortSelect.style.border = '1px solid var(--background-modifier-border)';
+        sortSelect.style.fontWeight = '600';
+
         const sortOptions = [
-            { value: 'default', label: 'Default Order' },
-            { value: 'priority-desc', label: theme === 'guild' ? 'Threat: High to Low' : 'Priority: High to Low' },
-            { value: 'priority-asc', label: theme === 'guild' ? 'Threat: Low to High' : 'Priority: Low to High' },
-            { value: 'assignee', label: 'Assignee / Member' },
-            { value: 'title', label: 'Card Title (A-Z)' }
+            { value: 'default', label: 'Default (Manual Drag & Drop)' },
+            { value: 'priority-desc', label: isGuild ? 'Threat: Highest First (S → B)' : 'Priority: Highest First (P1 → P3)' },
+            { value: 'priority-asc', label: isGuild ? 'Threat: Lowest First (B → S)' : 'Priority: Lowest First (P3 → P1)' },
+            { value: 'assignee', label: 'Assignee / Team Member (A-Z)' },
+            { value: 'type', label: isGuild ? 'Contract Type (Monster → Commission)' : 'Task Type (Bug → Feature → Task)' },
+            { value: 'title-asc', label: 'Card Title (A → Z)' },
+            { value: 'title-desc', label: 'Card Title (Z → A)' }
         ];
         sortOptions.forEach(opt => {
             const opEl = document.createElement('option');
@@ -316,7 +324,7 @@ export class FilterService {
         // Reset Button
         const resetBtn = document.createElement('button');
         resetBtn.className = 'questwall-reset-btn';
-        resetBtn.innerText = 'Reset Filters';
+        resetBtn.innerText = 'Reset All';
         resetBtn.addEventListener('click', () => {
             this.activeFilters.assignees.clear();
             this.activeFilters.priorities.clear();
@@ -335,10 +343,10 @@ export class FilterService {
         themeBtn.className = 'questwall-theme-btn';
         themeBtn.setAttribute('role', 'button');
         themeBtn.setAttribute('tabindex', '0');
-        themeBtn.innerHTML = theme === 'guild' ? '✨ Switch to Sleek Glass' : '🏰 Switch to Guild Quest RPG';
+        themeBtn.innerHTML = isGuild ? '✨ Switch to Default (Sleek Glass)' : '⚔️ Switch to Guild RPG Theme';
         
         const toggleTheme = async () => {
-            this.plugin.settings.theme = theme === 'guild' ? 'sleek' : 'guild';
+            this.plugin.settings.theme = isGuild ? 'sleek' : 'guild';
             await this.plugin.saveSettings();
         };
 
@@ -355,7 +363,7 @@ export class FilterService {
     }
 
     /**
-     * Filters and sorts cards inside each column lane.
+     * Filters and sorts cards inside each column lane based on active criteria.
      * @param {HTMLElement} board
      */
     applyFiltersAndSort(board) {
@@ -387,62 +395,77 @@ export class FilterService {
                 }
             });
 
-            items.sort((a, b) => {
-                const aDimmed = a.classList.contains('is-filtered-dimmed');
-                const bDimmed = b.classList.contains('is-filtered-dimmed');
+            if (sortBy !== 'default' || hasFilters) {
+                items.sort((a, b) => {
+                    const aDimmed = a.classList.contains('is-filtered-dimmed');
+                    const bDimmed = b.classList.contains('is-filtered-dimmed');
 
-                if (hasFilters && aDimmed !== bDimmed) {
-                    return aDimmed ? 1 : -1;
-                }
+                    if (hasFilters && aDimmed !== bDimmed) {
+                        return aDimmed ? 1 : -1;
+                    }
 
-                if (sortBy === 'priority-desc' || sortBy === 'priority-asc') {
-                    const getPrioScore = (el) => {
-                        let prio = 0;
-                        el.querySelectorAll('.qw-badge-priority, a.tag, span.cm-hashtag').forEach(t => {
-                            const raw = (t.dataset.qwCleanTag || t.innerText || '').toUpperCase();
-                            if (raw.includes('P1') || raw.includes('S-RANK') || raw.includes('HIGH')) prio = Math.max(prio, 3);
-                            else if (raw.includes('P2') || raw.includes('A-RANK') || raw.includes('MEDIUM')) prio = Math.max(prio, 2);
-                            else if (raw.includes('P3') || raw.includes('B-RANK') || raw.includes('LOW')) prio = Math.max(prio, 1);
-                        });
-                        return prio;
-                    };
-                    const scoreA = getPrioScore(a);
-                    const scoreB = getPrioScore(b);
-                    return sortBy === 'priority-desc' ? scoreB - scoreA : scoreA - scoreB;
-                }
+                    if (sortBy === 'priority-desc' || sortBy === 'priority-asc') {
+                        const getPrioScore = (el) => {
+                            let prio = 0;
+                            el.querySelectorAll('.qw-badge-priority, a.tag, span.cm-hashtag').forEach(t => {
+                                const raw = (t.dataset.qwCleanTag || t.innerText || '').toUpperCase();
+                                if (raw.includes('P1') || raw.includes('S-RANK') || raw.includes('HIGH')) prio = Math.max(prio, 3);
+                                else if (raw.includes('P2') || raw.includes('A-RANK') || raw.includes('MEDIUM')) prio = Math.max(prio, 2);
+                                else if (raw.includes('P3') || raw.includes('B-RANK') || raw.includes('LOW')) prio = Math.max(prio, 1);
+                            });
+                            return prio;
+                        };
+                        const scoreA = getPrioScore(a);
+                        const scoreB = getPrioScore(b);
+                        return sortBy === 'priority-desc' ? scoreB - scoreA : scoreA - scoreB;
+                    }
 
-                if (sortBy === 'assignee') {
-                    const getAssignee = (el) => {
-                        let ass = 'zzz';
-                        el.querySelectorAll('.qw-badge-assignee, a.tag, a.internal-link[href*="@"], span.cm-hashtag').forEach(t => {
-                            const raw = t.dataset.qwCleanTag || t.getAttribute('href') || t.innerText || '';
-                            const clean = cleanRawTagId(raw);
-                            if (clean && !['bug', 'feature', 'task', 'P1', 'P2', 'P3'].includes(clean)) {
-                                ass = clean.toLowerCase();
-                            }
-                        });
-                        return ass;
-                    };
-                    return getAssignee(a).localeCompare(getAssignee(b));
-                }
+                    if (sortBy === 'assignee') {
+                        const getAssignee = (el) => {
+                            let ass = 'zzz';
+                            el.querySelectorAll('.qw-badge-assignee, a.tag, a.internal-link[href*="@"], span.cm-hashtag').forEach(t => {
+                                const raw = t.dataset.qwCleanTag || t.getAttribute('href') || t.innerText || '';
+                                const clean = cleanRawTagId(raw);
+                                if (clean && !['bug', 'feature', 'task', 'P1', 'P2', 'P3'].includes(clean)) {
+                                    ass = clean.toLowerCase();
+                                }
+                            });
+                            return ass;
+                        };
+                        return getAssignee(a).localeCompare(getAssignee(b));
+                    }
 
-                if (sortBy === 'title') {
-                    const titleA = (a.querySelector('.kanban-plugin__item-title') || a).innerText;
-                    const titleB = (b.querySelector('.kanban-plugin__item-title') || b).innerText;
-                    return titleA.localeCompare(titleB);
-                }
+                    if (sortBy === 'type') {
+                        const getTypeScore = (el) => {
+                            let tScore = 3;
+                            const txt = (el.innerText || '').toLowerCase();
+                            if (txt.includes('#bug') || txt.includes('monster')) tScore = 1;
+                            else if (txt.includes('#feature') || txt.includes('artifact')) tScore = 2;
+                            else if (txt.includes('#task') || txt.includes('commission')) tScore = 3;
+                            return tScore;
+                        };
+                        return getTypeScore(a) - getTypeScore(b);
+                    }
 
-                return 0;
-            });
+                    if (sortBy === 'title-asc' || sortBy === 'title-desc') {
+                        const titleA = (a.querySelector('.kanban-plugin__item-title') || a).innerText.trim();
+                        const titleB = (b.querySelector('.kanban-plugin__item-title') || b).innerText.trim();
+                        const cmp = titleA.localeCompare(titleB);
+                        return sortBy === 'title-asc' ? cmp : -cmp;
+                    }
 
-            const addBtnWrapper = laneItemsContainer.querySelector('.kanban-plugin__item-button-wrapper');
-            items.forEach(item => {
-                if (addBtnWrapper) {
-                    laneItemsContainer.insertBefore(item, addBtnWrapper);
-                } else {
-                    laneItemsContainer.appendChild(item);
-                }
-            });
+                    return 0;
+                });
+
+                const addBtnWrapper = laneItemsContainer.querySelector('.kanban-plugin__item-button-wrapper');
+                items.forEach(item => {
+                    if (addBtnWrapper) {
+                        laneItemsContainer.insertBefore(item, addBtnWrapper);
+                    } else {
+                        laneItemsContainer.appendChild(item);
+                    }
+                });
+            }
         });
 
         if (this.plugin.cardService) {

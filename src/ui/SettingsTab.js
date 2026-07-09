@@ -1,6 +1,6 @@
 /**
  * @file src/ui/SettingsTab.js
- * @description Plugin settings interface featuring multi-role team management, search/pagination, engineering role mapping, and theme selection.
+ * @description Plugin settings interface featuring multi-role team management, search/pagination, sorting, dynamic theme adaptation, and role mapping.
  * @author Antigravity Engineering
  */
 
@@ -18,6 +18,7 @@ export class QuestwallSettingTab extends PluginSettingTab {
         this.plugin = plugin;
         this.currentPage = 1;
         this.searchQuery = '';
+        this.sortBy = 'default'; // 'default' | 'name-asc' | 'name-desc' | 'role'
         this.pageSize = 5;
     }
 
@@ -26,7 +27,13 @@ export class QuestwallSettingTab extends PluginSettingTab {
         containerEl.empty();
         containerEl.style.maxWidth = '780px';
 
-        containerEl.createEl('h2', { text: 'Questwall — Agile Team & Kanban Supercharger' });
+        const theme = this.plugin.settings.theme || 'sleek';
+        const isGuild = theme === 'guild';
+
+        containerEl.createEl('h2', {
+            text: isGuild ? 'Questwall — Adventure Guild RPG Command Center' : 'Questwall — Agile Team & Kanban Supercharger',
+            attr: { style: isGuild ? 'color: #d97706; font-family: Georgia, serif;' : '' }
+        });
 
         // 1. Theme Setting
         new Setting(containerEl)
@@ -39,25 +46,43 @@ export class QuestwallSettingTab extends PluginSettingTab {
                 drop.onChange(async (value) => {
                     this.plugin.settings.theme = value;
                     await this.plugin.saveSettings();
-                    this.display();
+                    this.display(); // Instantly re-render entire Settings UI to adapt wording & styling!
                 });
             });
 
         containerEl.createEl('hr', { attr: { style: 'margin: 24px 0;' } });
 
-        // 2. Team & Party Management Section
-        const teamHeader = containerEl.createDiv({ attr: { style: 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;' } });
-        teamHeader.createEl('h3', { text: '👥 Team & Role Management', attr: { style: 'margin: 0;' } });
+        // 2. Team & Party Management Section with Search & Sorting
+        const teamHeader = containerEl.createDiv({ attr: { style: 'display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;' } });
+        teamHeader.createEl('h3', { text: isGuild ? '👥 Party & Adventurer Management' : '👥 Team & Role Management', attr: { style: 'margin: 0;' } });
 
-        const searchContainer = teamHeader.createDiv({ attr: { style: 'display: flex; gap: 8px; align-items: center;' } });
-        const searchInput = searchContainer.createEl('input', {
+        const searchSortWrap = teamHeader.createDiv({ attr: { style: 'display: flex; gap: 8px; align-items: center; flex-wrap: wrap;' } });
+        
+        const searchInput = searchSortWrap.createEl('input', {
             type: 'text',
-            placeholder: '🔍 Search team members...',
+            placeholder: isGuild ? '🔍 Search party members...' : '🔍 Search team members...',
             value: this.searchQuery,
-            attr: { style: 'padding: 6px 12px; border-radius: 8px; border: 1px solid var(--background-modifier-border);' }
+            attr: { style: 'padding: 6px 12px; border-radius: 8px; border: 1px solid var(--background-modifier-border); font-size: 0.88rem;' }
         });
         searchInput.addEventListener('input', (e) => {
             this.searchQuery = e.target.value.toLowerCase().trim();
+            this.currentPage = 1;
+            this.renderTeamList(listContainerEl);
+        });
+
+        const sortSelect = searchSortWrap.createEl('select', { attr: { style: 'padding: 6px 10px; border-radius: 8px; border: 1px solid var(--background-modifier-border); font-weight: 600; font-size: 0.86rem;' } });
+        const sortOptions = [
+            { value: 'default', label: '↕️ Sort: Default Order' },
+            { value: 'name-asc', label: 'Name (A → Z)' },
+            { value: 'name-desc', label: 'Name (Z → A)' },
+            { value: 'role', label: isGuild ? 'Class Title (A → Z)' : 'Discipline / Role (A → Z)' }
+        ];
+        sortOptions.forEach(opt => {
+            const opEl = sortSelect.createEl('option', { value: opt.value, text: opt.label });
+            if (this.sortBy === opt.value) opEl.selected = true;
+        });
+        sortSelect.addEventListener('change', (e) => {
+            this.sortBy = e.target.value;
             this.currentPage = 1;
             this.renderTeamList(listContainerEl);
         });
@@ -68,15 +93,19 @@ export class QuestwallSettingTab extends PluginSettingTab {
         containerEl.createEl('hr', { attr: { style: 'margin: 24px 0;' } });
 
         // 3. Add New Team Member Box
-        const addSection = containerEl.createDiv({ attr: { style: 'padding: 18px; border-radius: 12px; background: var(--background-secondary); border: 1px solid var(--background-modifier-border); margin-bottom: 24px;' } });
-        addSection.createEl('h4', { text: '➕ Add New Team Member', attr: { style: 'margin-top: 0; margin-bottom: 14px;' } });
+        const addSection = containerEl.createDiv({
+            attr: {
+                style: `padding: 18px; border-radius: 12px; background: var(--background-secondary); border: 1.5px solid ${isGuild ? 'rgba(217, 119, 6, 0.4)' : 'var(--background-modifier-border)'}; margin-bottom: 24px;`
+            }
+        });
+        addSection.createEl('h4', { text: isGuild ? '⚔️ Recruit New Adventurer into Party' : '➕ Add New Team Member', attr: { style: 'margin-top: 0; margin-bottom: 14px;' } });
 
         const addGrid = addSection.createDiv({ attr: { style: 'display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px;' } });
 
-        const nameInput = addGrid.createEl('input', { type: 'text', placeholder: 'Name (e.g. James)', attr: { style: 'flex: 1; min-width: 160px; padding: 8px 12px; border-radius: 8px;' } });
+        const nameInput = addGrid.createEl('input', { type: 'text', placeholder: isGuild ? 'Adventurer Name...' : 'Name (e.g. James)', attr: { style: 'flex: 1; min-width: 160px; padding: 8px 12px; border-radius: 8px;' } });
         const colorInput = addGrid.createEl('input', { type: 'color', value: '#3b82f6', attr: { style: 'width: 44px; height: 38px; padding: 0; border: none; cursor: pointer; border-radius: 6px;' } });
 
-        addSection.createEl('div', { text: 'Select Engineering & Product Roles:', attr: { style: 'font-weight: 600; font-size: 0.86rem; margin-bottom: 8px; color: var(--text-normal);' } });
+        addSection.createEl('div', { text: isGuild ? 'Select Adventurer Classes / Roles:' : 'Select Engineering & Product Roles:', attr: { style: 'font-weight: 600; font-size: 0.86rem; margin-bottom: 8px; color: var(--text-normal);' } });
         const roleGrid = addSection.createDiv({ attr: { style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 280px; overflow-y: auto; padding-right: 6px; margin-bottom: 16px;' } });
 
         const selectedRoles = new Set(['Paladin']);
@@ -124,7 +153,7 @@ export class QuestwallSettingTab extends PluginSettingTab {
         renderRoleSelector();
 
         const submitBtn = addSection.createEl('button', {
-            text: '➕ Add Team Member',
+            text: isGuild ? '⚔️ Recruit Adventurer into Party' : '➕ Add Team Member',
             attr: {
                 role: 'button',
                 tabindex: '0',
@@ -168,10 +197,10 @@ export class QuestwallSettingTab extends PluginSettingTab {
             }
         });
 
-        // 4. Role Mapping & Industry Standards Guide
+        // 4. Role Mapping Legend
         const guideSection = containerEl.createDiv({ attr: { style: 'padding: 16px; border-radius: 12px; background: var(--background-primary-alt); border: 1px solid var(--background-modifier-border);' } });
-        guideSection.createEl('h4', { text: '📖 Engineering & Product Role Mapping Legend', attr: { style: 'margin-top: 0; margin-bottom: 10px; font-weight: 700; color: var(--text-normal);' } });
-        guideSection.createEl('p', { text: 'To maintain clean alignment between standard engineering org structures and optional gamified badges, each role maps directly to an industry-standard engineering discipline:', attr: { style: 'font-size: 0.84rem; color: var(--text-muted); margin-bottom: 14px;' } });
+        guideSection.createEl('h4', { text: isGuild ? '📖 Adventurer Class to Engineering Discipline Legend' : '📖 Engineering & Product Role Mapping Legend', attr: { style: 'margin-top: 0; margin-bottom: 10px; font-weight: 700; color: var(--text-normal);' } });
+        guideSection.createEl('p', { text: isGuild ? 'To map RPG party roles to your organization, each Adventurer Class corresponds to an engineering discipline:' : 'To maintain clean alignment between standard engineering org structures and team badges, each role maps directly to an industry discipline:', attr: { style: 'font-size: 0.84rem; color: var(--text-muted); margin-bottom: 14px;' } });
 
         const guideGrid = guideSection.createDiv({ attr: { style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 8px;' } });
         ADVENTURER_CLASSES.forEach(c => {
@@ -185,13 +214,21 @@ export class QuestwallSettingTab extends PluginSettingTab {
         if (!containerEl) return;
         containerEl.empty();
 
-        const members = (this.plugin.settings.teamMembers || []).filter(m => {
+        let members = (this.plugin.settings.teamMembers || []).filter(m => {
             if (!this.searchQuery) return true;
             return m.name.toLowerCase().includes(this.searchQuery) || (m.classTitle && m.classTitle.toLowerCase().includes(this.searchQuery));
         });
 
+        if (this.sortBy === 'name-asc') {
+            members.sort((a, b) => a.name.localeCompare(b.name));
+        } else if (this.sortBy === 'name-desc') {
+            members.sort((a, b) => b.name.localeCompare(a.name));
+        } else if (this.sortBy === 'role') {
+            members.sort((a, b) => (a.classTitle || '').localeCompare(b.classTitle || ''));
+        }
+
         if (members.length === 0) {
-            containerEl.createEl('div', { text: 'No team members found matching query.', attr: { style: 'padding: 16px; text-align: center; color: var(--text-muted); font-style: italic;' } });
+            containerEl.createEl('div', { text: 'No team members found matching criteria.', attr: { style: 'padding: 16px; text-align: center; color: var(--text-muted); font-style: italic;' } });
             return;
         }
 
