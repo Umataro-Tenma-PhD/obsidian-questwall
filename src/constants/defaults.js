@@ -47,8 +47,19 @@ export const LANE_COLORS = {
  * @param {boolean} isGuild
  * @returns {{ roles: string[], classTitle: string, icon: string }}
  */
+export const RESERVED_TAGS = new Set([
+    'bug', 'feature', 'task', 'P1', 'P2', 'P3', 'security', 'tech-debt',
+    's-rank', 'a-rank', 'b-rank', 'monster', 'artifact', 'commission'
+]);
+
+/**
+ * Computes consolidated roles, class titles, and icons from a role array depending on active theme.
+ * @param {string[]|string} rolesArray
+ * @param {boolean} isGuild
+ * @returns {{ roles: string[], classTitle: string, icon: string }}
+ */
 export function computeRolesDisplay(rolesArray, isGuild = true) {
-    const roles = Array.isArray(rolesArray) ? rolesArray : [rolesArray].filter(Boolean);
+    const roles = (Array.isArray(rolesArray) ? rolesArray : [rolesArray]).filter(Boolean);
     if (!roles || !roles.length) {
         return { roles: isGuild ? ['Paladin'] : ['SRE / DevOps'], classTitle: isGuild ? 'Paladin' : 'SRE / DevOps', icon: isGuild ? '🛡️' : '👤' };
     }
@@ -76,25 +87,13 @@ export function computeRolesDisplay(rolesArray, isGuild = true) {
  * @returns {string}
  */
 export function getPureCardTitle(text) {
-    if (!text) return '';
+    if (!text || typeof text !== 'string') return String(text || '').trim();
     return text
         .replace(/#(?:assignee\/|priority\/|type\/)?[\w-/]+/gi, '')
         .replace(/\[\[@[^\]]+\]\]/gi, '')
         .replace(/@[A-Za-z0-9_-]+/g, '')
-        .replace(/\b(🐞\s*)+Bug\b/gi, '')
-        .replace(/\b(🔴\s*)+P1(\s*\(High\))?\b/gi, '')
-        .replace(/\b(🟡\s*)+P2(\s*\(Med\))?\b/gi, '')
-        .replace(/\b(🟢\s*)+P3(\s*\(Low\))?\b/gi, '')
-        .replace(/\b(✨\s*\+?\s*)+Feature\b/gi, '')
-        .replace(/\b(📋\s*)+Task\b/gi, '')
-        .replace(/🐉\s*S-Rank(\s*\(#P1\))?/gi, '')
-        .replace(/⚔️\s*A-Rank(\s*\(#P2\))?/gi, '')
-        .replace(/[🌱🛡️]\s*B-Rank(\s*\(#P3\))?/gi, '')
-        .replace(/🕷️\s*Monster(\s*\(#bug\))?/gi, '')
-        .replace(/💎\s*Artifact(\s*\(#feature\))?/gi, '')
-        .replace(/📜\s*Commission(\s*\(#task\))?/gi, '')
-        .replace(/(\s*[🐞🔴🟡🟢✨📋🐉⚔️🌱🛡️🧙‍♂️🔥🐴🗡️⚙️🧪🌿👤⚡🎨+]{2,}\s*)/g, ' ')
-        .replace(/\[\[|\]\]/g, '')
+        .replace(/\b(🐞\s*)+Bug\b|\b(🔴\s*)+P1(\s*\(High\))?\b|\b(🟡\s*)+P2(\s*\(Med\))?\b|\b(🟢\s*)+P3(\s*\(Low\))?\b|\b(✨\s*\+?\s*)+Feature\b|\b(📋\s*)+Task\b/gi, '')
+        .replace(/🐉\s*S-Rank(\s*\(#P1\))?|⚔️\s*A-Rank(\s*\(#P2\))?|[🌱🛡️]\s*B-Rank(\s*\(#P3\))?|🕷️\s*Monster(\s*\(#bug\))?|💎\s*Artifact(\s*\(#feature\))?|📜\s*Commission(\s*\(#task\))?/gi, '')
         .replace(/\s+/g, ' ').trim();
 }
 
@@ -104,12 +103,12 @@ export function getPureCardTitle(text) {
  * @returns {string}
  */
 export function cleanRawTagId(raw) {
-    if (!raw) return '';
+    if (!raw || typeof raw !== 'string') return '';
     let clean = raw.trim();
     if (clean.startsWith('[[') && clean.endsWith(']]')) {
         clean = clean.slice(2, -2).split('|')[0].trim();
     }
     clean = clean.replace(/^[#@]+/, '').replace(/^(?:assignee\/|priority\/|type\/)/i, '');
-    clean = clean.replace(/[\/?:*"<>|]+/g, '-').replace(/\s+/g, '-').trim();
-    return clean;
+    return clean.replace(/[\/?:*"<>|]+/g, '-').replace(/\s+/g, '-').replace(/^-+|-+$/g, '').replace(/-+/g, '-').trim();
 }
+

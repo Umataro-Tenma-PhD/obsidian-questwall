@@ -5,7 +5,7 @@
  */
 
 import { Modal, Notice } from 'obsidian';
-import { ADVENTURER_CLASSES, computeRolesDisplay } from '../constants/defaults.js';
+import { ADVENTURER_CLASSES, computeRolesDisplay, LANE_COLORS, RESERVED_TAGS } from '../constants/defaults.js';
 
 export class QuickAssignModal extends Modal {
     /**
@@ -15,12 +15,18 @@ export class QuickAssignModal extends Modal {
      * @param {string} cleanTitle
      * @param {function} onSave
      */
-    constructor(app, settings, cardItem, cleanTitle, onSave) {
+    constructor(app, settings, cardItem, cleanTitle, plugin, onSave) {
         super(app);
         this.settings = settings || {};
         this.cardItem = cardItem;
         this.cleanTitle = cleanTitle || 'Untitled Quest';
-        this.onSave = onSave;
+        this.plugin = plugin;
+        if (typeof plugin === 'function' && !onSave) {
+            this.onSave = plugin;
+            this.plugin = null;
+        } else {
+            this.onSave = onSave;
+        }
 
         this.selectedAssignee = null;
         if (cardItem) {
@@ -28,7 +34,7 @@ export class QuickAssignModal extends Modal {
             assigneeTags.forEach(t => {
                 const raw = t.dataset.qwCleanTag || t.getAttribute('href') || t.getAttribute('data-href') || t.innerText || '';
                 const clean = raw.replace(/^[#@]+/, '').replace(/^(?:assignee\/)/i, '').trim();
-                if (clean && !['bug', 'feature', 'task', 'P1', 'P2', 'P3', 'security', 'tech-debt'].includes(clean)) {
+                if (clean && !RESERVED_TAGS.has(clean) && !RESERVED_TAGS.has(clean.toLowerCase())) {
                     if (/^[A-Za-z_-][A-Za-z0-9_-]*$/.test(clean)) {
                         this.selectedAssignee = `[[@${clean}]]`;
                     }
@@ -40,14 +46,19 @@ export class QuickAssignModal extends Modal {
         this.selectedType = null;
 
         if (cardItem) {
-            const text = cardItem.innerText || '';
-            if (text.match(/#P1\b/i) || text.match(/S-Rank/i) || text.match(/P1/i)) this.selectedPriority = '#P1';
-            else if (text.match(/#P2\b/i) || text.match(/A-Rank/i) || text.match(/P2/i)) this.selectedPriority = '#P2';
-            else if (text.match(/#P3\b/i) || text.match(/B-Rank/i) || text.match(/P3/i)) this.selectedPriority = '#P3';
+            cardItem.querySelectorAll('.qw-badge-priority, a.tag, span.cm-hashtag').forEach(t => {
+                const raw = (t.dataset.qwCleanTag || t.innerText || '').toUpperCase().replace(/^#/, '');
+                if (raw === 'P1' || raw.includes('S-RANK') || raw.includes('HIGH')) this.selectedPriority = '#P1';
+                else if (raw === 'P2' || raw.includes('A-RANK') || raw.includes('MEDIUM')) this.selectedPriority = '#P2';
+                else if (raw === 'P3' || raw.includes('B-RANK') || raw.includes('LOW')) this.selectedPriority = '#P3';
+            });
 
-            if (text.match(/#bug\b/i) || text.match(/Monster/i) || text.match(/Bug/i)) this.selectedType = '#bug';
-            else if (text.match(/#feature\b/i) || text.match(/Artifact/i) || text.match(/Feature/i)) this.selectedType = '#feature';
-            else if (text.match(/#task\b/i) || text.match(/Commission/i) || text.match(/Task/i)) this.selectedType = '#task';
+            cardItem.querySelectorAll('.qw-badge-type, a.tag, span.cm-hashtag').forEach(t => {
+                const raw = (t.dataset.qwCleanTag || t.innerText || '').toLowerCase().replace(/^#/, '');
+                if (raw === 'bug' || raw.includes('monster')) this.selectedType = '#bug';
+                else if (raw === 'feature' || raw.includes('artifact')) this.selectedType = '#feature';
+                else if (raw === 'task' || raw.includes('commission')) this.selectedType = '#task';
+            });
         }
     }
 
@@ -118,7 +129,7 @@ export class QuickAssignModal extends Modal {
                 }
             });
 
-            addWriteInBtn.addEventListener('click', () => {
+            addWriteInBtn.addEventListener('click', async () => {
                 const name = window.prompt('Enter new person\'s name:');
                 if (name && name.trim()) {
                     const cleanName = name.trim();
@@ -126,6 +137,9 @@ export class QuickAssignModal extends Modal {
                         members.push({ name: cleanName, icon: '👤', classTitle: 'Team Member', color: '#3b82f6' });
                         if (this.settings && Array.isArray(this.settings.teamMembers)) {
                             this.settings.teamMembers.push({ name: cleanName, icon: '👤', classTitle: 'Team Member', color: '#3b82f6' });
+                            if (this.plugin && typeof this.plugin.saveSettings === 'function') {
+                                await this.plugin.saveSettings();
+                            }
                         }
                     }
                     this.selectedAssignee = `[[@${cleanName}]]`;
@@ -278,8 +292,17 @@ export class QuickAssignModal extends Modal {
 
     updatePreview() {
         if (!this.previewEl) return;
+        this.previewEl.empty();
         const tags = [this.selectedAssignee, this.selectedPriority, this.selectedType].filter(Boolean).join(' ');
-        this.previewEl.innerHTML = `<strong>Card Note Line:</strong><br/>- [ ] ${this.cleanTitle} <span style="color: var(--interactive-accent); font-weight: bold;">${tags}</span>`;
+        
+        const labelEl = this.previewEl.createDiv({ attr: { style: 'font-weight: bold; margin-bottom: 4px;' } });
+        labelEl.textContent = 'Card Note Line:';
+        
+        const lineEl = this.previewEl.createDiv();
+        lineEl.createSpan({ text: `- [ ] ${this.cleanTitle} ` });
+        if (tags) {
+            lineEl.createSpan({ text: tags, attr: { style: 'color: var(--interactive-accent); font-weight: bold;' } });
+        }
     }
 
     onClose() {
@@ -399,15 +422,18 @@ export class EditMemberModal extends Modal {
             const computed = computeRolesDisplay(rolesArr, isGuild);
 
             const idx = this.plugin.settings.teamMembers.findIndex(m => m.name === this.member.name);
-            if (idx !== -1) {
-                this.plugin.settings.teamMembers[idx] = {
-                    name: newName,
-                    roles: rolesArr,
-                    classTitle: computed.classTitle,
-                    icon: computed.icon,
-                    color: colorInput.value
-                };
+            if (idx === -1) {
+                new Notice('Could not locate team member to update.');
+                return;
             }
+
+            this.plugin.settings.teamMembers[idx] = {
+                name: newName,
+                roles: rolesArr,
+                classTitle: computed.classTitle,
+                icon: computed.icon,
+                color: colorInput.value
+            };
 
             await this.plugin.saveSettings();
             new Notice(`Roles updated for ${newName}!`);
@@ -424,6 +450,106 @@ export class EditMemberModal extends Modal {
         });
 
         setTimeout(() => saveBtn.focus(), 50);
+    }
+
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
+    }
+}
+
+
+export class LaneColorModal extends Modal {
+    /**
+     * @param {object} app
+     * @param {function} onSelect
+     */
+    constructor(app, onSelect) {
+        super(app);
+        this.onSelect = onSelect;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        contentEl.style.padding = '22px';
+        contentEl.style.maxWidth = '420px';
+
+        contentEl.createEl('h3', { text: '🎨 Change Column Lane Color', attr: { style: 'margin-top: 0; margin-bottom: 18px; font-weight: 700;' } });
+        contentEl.createEl('p', { text: 'Select a subtle background and border tint for this Kanban column:', attr: { style: 'font-size: 0.86rem; color: var(--text-muted); margin-bottom: 16px;' } });
+
+        const grid = contentEl.createDiv({ attr: { style: 'display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;' } });
+
+        Object.entries(LANE_COLORS).forEach(([key, color]) => {
+            const btn = grid.createDiv({
+                attr: {
+                    role: 'button',
+                    tabindex: '0',
+                    style: `
+                        padding: 10px 14px;
+                        border-radius: 8px;
+                        border: 1.5px solid ${color.border};
+                        background: ${color.bg};
+                        cursor: pointer;
+                        font-weight: 600;
+                        font-size: 0.88rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        transition: all 0.2s ease;
+                    `
+                }
+            });
+            btn.createSpan({ text: color.label });
+            btn.createSpan({ attr: { style: `width: 16px; height: 16px; border-radius: 50%; background: ${color.border}; display: inline-block;` } });
+
+            const chooseColor = () => {
+                if (this.onSelect) this.onSelect(key);
+                this.close();
+            };
+            btn.addEventListener('click', chooseColor);
+            btn.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    chooseColor();
+                }
+            });
+        });
+
+        const resetBtn = grid.createDiv({
+            attr: {
+                role: 'button',
+                tabindex: '0',
+                style: `
+                    padding: 10px 14px;
+                    border-radius: 8px;
+                    border: 1.5px dashed var(--background-modifier-border);
+                    background: transparent;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 0.88rem;
+                    text-align: center;
+                    color: var(--text-muted);
+                    transition: all 0.2s ease;
+                `
+            }
+        });
+        resetBtn.textContent = '✖ Reset to Default Color';
+        const chooseReset = () => {
+            if (this.onSelect) this.onSelect('reset');
+            this.close();
+        };
+        resetBtn.addEventListener('click', chooseReset);
+        resetBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                chooseReset();
+            }
+        });
+
+        const cancelContainer = contentEl.createDiv({ attr: { style: 'display: flex; justify-content: flex-end;' } });
+        const cancelBtn = cancelContainer.createEl('button', { text: 'Cancel', attr: { style: 'padding: 6px 14px; border-radius: 6px; cursor: pointer;' } });
+        cancelBtn.addEventListener('click', () => this.close());
     }
 
     onClose() {

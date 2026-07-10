@@ -80,17 +80,19 @@ export class FilterService {
         assigneesSec.className = 'questwall-toolbar-section';
         const assigneeLabel = document.createElement('span');
         assigneeLabel.className = 'questwall-toolbar-label';
-        assigneeLabel.innerText = labels.assignee;
+        assigneeLabel.textContent = labels.assignee;
         assigneesSec.appendChild(assigneeLabel);
 
         const discoveredNames = new Set();
         board.querySelectorAll('.kanban-plugin__item').forEach(item => {
-            const tags = item.querySelectorAll('a.tag, a.internal-link[href*="@"], a.internal-link[data-href*="@"], span.cm-hashtag');
+            const tags = item.querySelectorAll('a.tag, a.internal-link[href*="@"], a.internal-link[data-href*="@"], span.cm-hashtag, .qw-badge-assignee');
             tags.forEach(t => {
-                const raw = t.dataset.qwCleanTag || t.getAttribute('href') || t.getAttribute('data-href') || t.innerText || '';
+                const raw = t.dataset.qwCleanTag || t.getAttribute('data-qw-assignee') || t.getAttribute('href') || t.getAttribute('data-href') || t.innerText || '';
                 const clean = cleanRawTagId(raw);
-                if (clean && !['bug', 'feature', 'task', 'P1', 'P2', 'P3', 'security', 'tech-debt'].includes(clean)) {
-                    if (/^[A-Za-z_-][A-Za-z0-9_-]*$/.test(clean)) {
+                if (clean && !RESERVED_TAGS.has(clean) && !RESERVED_TAGS.has(clean.toLowerCase())) {
+                    const isExplicitAssignee = raw.startsWith('@') || raw.startsWith('#assignee/') || raw.startsWith('[[@') || t.classList.contains('qw-badge-assignee');
+                    const inRoster = this.plugin.settings && Array.isArray(this.plugin.settings.teamMembers) && this.plugin.settings.teamMembers.some(m => m.name.toLowerCase() === clean.toLowerCase());
+                    if ((isExplicitAssignee || inRoster) && /^[A-Za-z_-][A-Za-z0-9_-]*$/.test(clean)) {
                         discoveredNames.add(clean);
                     }
                 }
@@ -121,7 +123,7 @@ export class FilterService {
             btn.setAttribute('tabindex', '0');
             btn.dataset.type = 'assignee';
             btn.dataset.value = name;
-            btn.innerHTML = `${icon} ${name}`;
+            btn.textContent = `${icon} ${name}`;
             btn.style.border = `1.5px solid ${color}`;
             btn.style.backgroundColor = `rgba(${rgb}, 0.15)`;
             btn.style.borderRadius = '16px';
@@ -168,7 +170,7 @@ export class FilterService {
         prioritySec.className = 'questwall-toolbar-section';
         const priorityLabel = document.createElement('span');
         priorityLabel.className = 'questwall-toolbar-label';
-        priorityLabel.innerText = labels.priority;
+        priorityLabel.textContent = labels.priority;
         prioritySec.appendChild(priorityLabel);
 
         const priorities = isGuild ? [
@@ -188,7 +190,7 @@ export class FilterService {
             btn.setAttribute('tabindex', '0');
             btn.dataset.type = 'priority';
             btn.dataset.value = p.id;
-            btn.innerHTML = p.label;
+            btn.textContent = p.label;
 
             if (this.activeFilters.priorities.has(p.id)) {
                 btn.classList.add('is-active');
@@ -223,7 +225,7 @@ export class FilterService {
         typeSec.className = 'questwall-toolbar-section';
         const typeLabel = document.createElement('span');
         typeLabel.className = 'questwall-toolbar-label';
-        typeLabel.innerText = labels.type;
+        typeLabel.textContent = labels.type;
         typeSec.appendChild(typeLabel);
 
         const types = isGuild ? [
@@ -243,7 +245,7 @@ export class FilterService {
             btn.setAttribute('tabindex', '0');
             btn.dataset.type = 'type';
             btn.dataset.value = t.id;
-            btn.innerHTML = t.label;
+            btn.textContent = t.label;
 
             if (this.activeFilters.types.has(t.id)) {
                 btn.classList.add('is-active');
@@ -273,86 +275,99 @@ export class FilterService {
         toolbar.appendChild(typeSec);
         toolbar.appendChild(createDivider());
 
-        // 4. Search & Comprehensive Sorting Controls
+        // 4. Search Filter & Reset
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'questwall-search-box';
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
-        searchInput.className = 'questwall-search-input';
-        searchInput.placeholder = isGuild ? '🔍 Search Quests...' : '🔍 Search board tasks...';
+        searchInput.placeholder = labels.searchPlaceholder;
         searchInput.value = this.activeFilters.search;
+
         searchInput.addEventListener('input', (e) => {
             this.activeFilters.search = e.target.value.toLowerCase().trim();
             this.applyFiltersAndSort(board);
         });
-        toolbar.appendChild(searchInput);
 
-        const sortSec = document.createElement('div');
-        sortSec.className = 'questwall-toolbar-section';
-        const sortLabel = document.createElement('span');
-        sortLabel.className = 'questwall-toolbar-label';
-        sortLabel.innerText = labels.sort;
-        sortSec.appendChild(sortLabel);
+        const resetBtn = document.createElement('span');
+        resetBtn.className = 'questwall-filter-btn qw-reset-btn';
+        resetBtn.setAttribute('role', 'button');
+        resetBtn.setAttribute('tabindex', '0');
+        resetBtn.textContent = '✖ Reset';
+        resetBtn.style.opacity = '0.75';
+        resetBtn.style.border = '1px solid rgba(255, 255, 255, 0.2)';
 
-        const sortSelect = document.createElement('select');
-        sortSelect.className = 'questwall-sort-select';
-        sortSelect.style.padding = '5px 10px';
-        sortSelect.style.borderRadius = '8px';
-        sortSelect.style.border = '1px solid var(--background-modifier-border)';
-        sortSelect.style.fontWeight = '600';
-
-        const sortOptions = [
-            { value: 'default', label: 'Default (Manual Drag & Drop)' },
-            { value: 'priority-desc', label: isGuild ? 'Threat: Highest First (S → B)' : 'Priority: Highest First (P1 → P3)' },
-            { value: 'priority-asc', label: isGuild ? 'Threat: Lowest First (B → S)' : 'Priority: Lowest First (P3 → P1)' },
-            { value: 'assignee', label: 'Assignee / Team Member (A-Z)' },
-            { value: 'type', label: isGuild ? 'Contract Type (Monster → Commission)' : 'Task Type (Bug → Feature → Task)' },
-            { value: 'title-asc', label: 'Card Title (A → Z)' },
-            { value: 'title-desc', label: 'Card Title (Z → A)' }
-        ];
-        sortOptions.forEach(opt => {
-            const opEl = document.createElement('option');
-            opEl.value = opt.value;
-            opEl.innerText = opt.label;
-            if (this.activeFilters.sortBy === opt.value) opEl.selected = true;
-            sortSelect.appendChild(opEl);
-        });
-        sortSelect.addEventListener('change', (e) => {
-            this.activeFilters.sortBy = e.target.value;
-            this.applyFiltersAndSort(board);
-        });
-        sortSec.appendChild(sortSelect);
-
-        // Reset Button
-        const resetBtn = document.createElement('button');
-        resetBtn.className = 'questwall-reset-btn';
-        resetBtn.innerText = 'Reset All';
-        resetBtn.addEventListener('click', () => {
+        const resetFilters = () => {
             this.activeFilters.assignees.clear();
             this.activeFilters.priorities.clear();
             this.activeFilters.types.clear();
             this.activeFilters.search = '';
-            this.activeFilters.sortBy = 'default';
             searchInput.value = '';
-            sortSelect.value = 'default';
-            toolbar.querySelectorAll('.questwall-filter-btn.is-active').forEach(b => b.classList.remove('is-active'));
+            this.activeFilters.sortBy = 'default';
+            if (sortSelect) sortSelect.value = 'default';
+            toolbar.querySelectorAll('.questwall-filter-btn').forEach(b => b.classList.remove('is-active'));
+            this.applyFiltersAndSort(board);
+        };
+
+        resetBtn.addEventListener('click', resetFilters);
+        resetBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                resetFilters();
+            }
+        });
+
+        searchContainer.appendChild(searchInput);
+        searchContainer.appendChild(resetBtn);
+        toolbar.appendChild(searchContainer);
+        toolbar.appendChild(createDivider());
+
+        // 5. Dynamic Column Sort Selector
+        const sortContainer = document.createElement('div');
+        sortContainer.className = 'questwall-sort-box';
+        const sortLabel = document.createElement('span');
+        sortLabel.className = 'questwall-toolbar-label';
+        sortLabel.textContent = 'Sort:';
+        sortContainer.appendChild(sortLabel);
+
+        const sortSelect = document.createElement('select');
+        sortSelect.className = 'questwall-sort-select';
+        const sortOptions = [
+            { val: 'default', text: 'Default (Board Order)' },
+            { val: 'priority-desc', text: 'Priority (High → Low)' },
+            { val: 'priority-asc', text: 'Priority (Low → High)' },
+            { val: 'assignee', text: 'Assignee (A → Z)' },
+            { val: 'type', text: 'Category (Bug → Feature → Task)' },
+            { val: 'title-asc', text: 'Title (A → Z)' },
+            { val: 'title-desc', text: 'Title (Z → A)' }
+        ];
+
+        sortOptions.forEach(opt => {
+            const optionEl = document.createElement('option');
+            optionEl.value = opt.val;
+            optionEl.textContent = opt.text;
+            if (this.activeFilters.sortBy === opt.val) optionEl.selected = true;
+            sortSelect.appendChild(optionEl);
+        });
+
+        sortSelect.addEventListener('change', (e) => {
+            this.activeFilters.sortBy = e.target.value;
             this.applyFiltersAndSort(board);
         });
-        toolbar.appendChild(resetBtn);
+
+        sortContainer.appendChild(sortSelect);
+        toolbar.appendChild(sortContainer);
+        toolbar.appendChild(createDivider());
 
         // Theme Switcher Button
         const themeBtn = document.createElement('span');
         themeBtn.className = 'questwall-theme-btn';
         themeBtn.setAttribute('role', 'button');
         themeBtn.setAttribute('tabindex', '0');
-        themeBtn.innerHTML = isGuild ? '✨ Switch to Default' : '⚔️ Switch to Guild';
+        themeBtn.textContent = isGuild ? '✨ Switch to Default' : '⚔️ Switch to Guild';
         
         const toggleTheme = async () => {
             this.plugin.settings.theme = isGuild ? 'sleek' : 'guild';
             await this.plugin.saveSettings();
-            
-            document.querySelectorAll('.kanban-plugin__board').forEach(b => {
-                if (this.plugin.cardService) this.plugin.cardService.syncBoardBadges(b);
-                this.applyFiltersAndSort(b);
-            });
         };
 
         themeBtn.addEventListener('click', toggleTheme);
@@ -372,13 +387,13 @@ export class FilterService {
      * @param {HTMLElement} board
      */
     applyFiltersAndSort(board) {
-        if (!board) return;
+        if (!board || board.querySelector('.is-dragging')) return;
         const { assignees, priorities, types, search, sortBy } = this.activeFilters;
         const hasFilters = assignees.size > 0 || priorities.size > 0 || types.size > 0 || search.length > 0;
 
         board.querySelectorAll('.kanban-plugin__lane').forEach(lane => {
             const laneItemsContainer = lane.querySelector('.kanban-plugin__lane-items');
-            if (!laneItemsContainer) return;
+            if (!laneItemsContainer || lane.querySelector('.is-dragging')) return;
 
             const items = Array.from(laneItemsContainer.querySelectorAll('.kanban-plugin__item'));
 
@@ -386,9 +401,16 @@ export class FilterService {
                 const text = item.innerText || '';
                 const lowerText = text.toLowerCase();
 
-                let matchesAssignee = assignees.size === 0 || Array.from(assignees).some(a => lowerText.includes(a.toLowerCase()));
-                let matchesPriority = priorities.size === 0 || Array.from(priorities).some(p => lowerText.includes(p.toLowerCase()));
-                let matchesType = types.size === 0 || Array.from(types).some(t => lowerText.includes(t.toLowerCase()));
+                const cardTokens = new Set();
+                item.querySelectorAll('.qw-card-badge, a.tag, a.internal-link[href*="@"], span.cm-hashtag').forEach(t => {
+                    const raw = t.dataset.qwCleanTag || t.getAttribute('data-qw-assignee') || t.getAttribute('href') || t.innerText || '';
+                    const clean = cleanRawTagId(raw);
+                    if (clean) cardTokens.add(clean.toLowerCase());
+                });
+
+                let matchesAssignee = assignees.size === 0 || Array.from(assignees).some(a => cardTokens.has(a.toLowerCase()) || lowerText.includes(`@${a.toLowerCase()}`));
+                let matchesPriority = priorities.size === 0 || Array.from(priorities).some(p => cardTokens.has(p.toLowerCase()));
+                let matchesType = types.size === 0 || Array.from(types).some(t => cardTokens.has(t.toLowerCase()));
                 let matchesSearch = search.length === 0 || lowerText.includes(search);
 
                 const isMatch = matchesAssignee && matchesPriority && matchesType && matchesSearch;
@@ -414,9 +436,9 @@ export class FilterService {
                             let prio = 0;
                             el.querySelectorAll('.qw-badge-priority, a.tag, span.cm-hashtag').forEach(t => {
                                 const raw = (t.dataset.qwCleanTag || t.innerText || '').toUpperCase();
-                                if (raw.includes('P1') || raw.includes('S-RANK') || raw.includes('HIGH')) prio = Math.max(prio, 3);
-                                else if (raw.includes('P2') || raw.includes('A-RANK') || raw.includes('MEDIUM')) prio = Math.max(prio, 2);
-                                else if (raw.includes('P3') || raw.includes('B-RANK') || raw.includes('LOW')) prio = Math.max(prio, 1);
+                                if (raw === 'P1' || raw.includes('S-RANK') || raw.includes('HIGH')) prio = Math.max(prio, 3);
+                                else if (raw === 'P2' || raw.includes('A-RANK') || raw.includes('MEDIUM')) prio = Math.max(prio, 2);
+                                else if (raw === 'P3' || raw.includes('B-RANK') || raw.includes('LOW')) prio = Math.max(prio, 1);
                             });
                             return prio;
                         };
@@ -431,7 +453,7 @@ export class FilterService {
                             el.querySelectorAll('.qw-badge-assignee, a.tag, a.internal-link[href*="@"], span.cm-hashtag').forEach(t => {
                                 const raw = t.dataset.qwCleanTag || t.getAttribute('href') || t.innerText || '';
                                 const clean = cleanRawTagId(raw);
-                                if (clean && !['bug', 'feature', 'task', 'P1', 'P2', 'P3'].includes(clean)) {
+                                if (clean && !RESERVED_TAGS.has(clean) && !RESERVED_TAGS.has(clean.toLowerCase())) {
                                     ass = clean.toLowerCase();
                                 }
                             });
@@ -443,10 +465,12 @@ export class FilterService {
                     if (sortBy === 'type') {
                         const getTypeScore = (el) => {
                             let tScore = 3;
-                            const txt = (el.innerText || '').toLowerCase();
-                            if (txt.includes('#bug') || txt.includes('monster')) tScore = 1;
-                            else if (txt.includes('#feature') || txt.includes('artifact')) tScore = 2;
-                            else if (txt.includes('#task') || txt.includes('commission')) tScore = 3;
+                            el.querySelectorAll('.qw-badge-type, a.tag, span.cm-hashtag').forEach(t => {
+                                const txt = (t.dataset.qwCleanTag || t.innerText || '').toLowerCase();
+                                if (txt === 'bug' || txt.includes('monster')) tScore = Math.min(tScore, 1);
+                                else if (txt === 'feature' || txt.includes('artifact')) tScore = Math.min(tScore, 2);
+                                else if (txt === 'task' || txt.includes('commission')) tScore = Math.min(tScore, 3);
+                            });
                             return tScore;
                         };
                         return getTypeScore(a) - getTypeScore(b);

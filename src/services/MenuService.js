@@ -115,7 +115,7 @@ export class MenuService {
         
         const iconEl = document.createElement('div');
         iconEl.className = 'menu-item-icon';
-        iconEl.innerHTML = '🎨';
+        iconEl.textContent = '🎨';
         item.appendChild(iconEl);
 
         const titleEl = document.createElement('div');

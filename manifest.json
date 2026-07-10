@@ -3,7 +3,7 @@
   "name": "Questwall",
   "version": "2.0.0",
   "minAppVersion": "1.0.0",
-  "description": "An agile team and workflow engine that elevates Obsidian Kanban boards with zero-polling DOM enhancements, interactive toolbars, multi-role team management, quick-assign dialogs, focus mode, and universal note badges.",
+  "description": "Adds interactive filtering, multi-role team assignment, quick priority and type tagging, column color tints, and focus mode directly to your Obsidian Kanban boards.",
   "author": "Antigravity Engineering",
   "authorUrl": "https://github.com/Umataro-Tenma-PhD",
   "isDesktopOnly": false

@@ -49,12 +49,17 @@ export default class QuestwallPlugin extends Plugin {
 
         // Initial scan on load
         this.app.workspace.onLayoutReady(() => {
-            this.filterService.scanAndInjectToolbars();
+            if (!this._unloaded && this.filterService) {
+                this.filterService.scanAndInjectToolbars();
+            }
         });
     }
 
     async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        const loaded = (await this.loadData()) || {};
+        this.settings = Object.assign({}, structuredClone(DEFAULT_SETTINGS), loaded);
+        if (!this.settings.laneTintMap) this.settings.laneTintMap = {};
+        if (!Array.isArray(this.settings.teamMembers)) this.settings.teamMembers = structuredClone(DEFAULT_SETTINGS.teamMembers);
         if (this.settings.theme === 'pixel') {
             this.settings.theme = 'guild';
         }
@@ -65,24 +70,28 @@ export default class QuestwallPlugin extends Plugin {
 
     async saveSettings() {
         await this.saveData(this.settings);
-        this.themeService.applyBodyTheme();
-        this.themeService.updateDynamicTeamStyles();
-
-        // Refresh active toolbars on theme change
+        if (this.themeService) {
+            this.themeService.applyBodyTheme();
+            this.themeService.updateDynamicTeamStyles();
+        }
         document.querySelectorAll('.questwall-toolbar').forEach(el => el.remove());
-        this.filterService.scanAndInjectToolbars();
-
-        // Instantly resync all badges and trigger view update across every active Kanban board
-        document.querySelectorAll('.kanban-plugin__board').forEach(board => {
-            if (this.cardService) this.cardService.syncBoardBadges(board);
-            if (this.filterService) this.filterService.applyFiltersAndSort(board);
-        });
+        if (this.filterService) {
+            this.filterService.scanAndInjectToolbars();
+        }
     }
 
     onunload() {
         console.log('Unloading Questwall 2.0...');
+        this._unloaded = true;
         if (this.themeService) this.themeService.cleanup();
         if (this.menuService) this.menuService.cleanup();
         document.querySelectorAll('.questwall-toolbar, .qw-quick-assign-trigger').forEach(el => el.remove());
+        document.querySelectorAll('.kanban-plugin__board').forEach(board => {
+            board.querySelectorAll('.qw-card-badge').forEach(badge => {
+                const raw = badge.dataset.qwCleanTag || badge.textContent;
+                if (raw) badge.outerHTML = `<a class="tag" href="#${raw}">#${raw}</a>`;
+            });
+            board.querySelectorAll('.is-filtered-dimmed').forEach(el => el.classList.remove('is-filtered-dimmed'));
+        });
     }
 }

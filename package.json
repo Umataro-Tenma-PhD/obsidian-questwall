@@ -1,7 +1,7 @@
 {
   "name": "obsidian-questwall",
   "version": "2.0.0",
-  "description": "Turn your Obsidian Kanban boards into high-fidelity Guild Quests, Retro Pixel RPGs, or Sleek Glassmorphism startup boards with interactive filtering, adventurer classes, and focus mode.",
+  "description": "Adds interactive filtering, multi-role team assignment, quick priority and type tagging, column color tints, and focus mode directly to your Obsidian Kanban boards.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
@@ -9,11 +9,13 @@
   },
   "keywords": [
     "obsidian",
+    "obsidian-plugin",
     "kanban",
-    "rpg",
-    "gamification",
-    "glassmorphism",
-    "project-management"
+    "project-management",
+    "agile",
+    "task-management",
+    "filtering",
+    "team-management"
   ],
   "author": "Antigravity Engineering <https://github.com/Umataro-Tenma-PhD>",
   "license": "MIT",
