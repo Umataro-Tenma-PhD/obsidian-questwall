@@ -186,19 +186,9 @@ export class QuestwallSettingTab extends PluginSettingTab {
                 handleAddMember();
             }
         });
-
-        // 4. Role Mapping Legend
-        const guideSection = containerEl.createDiv({ attr: { style: 'padding: 16px; border-radius: 12px; background: var(--background-primary-alt); border: 1px solid var(--background-modifier-border);' } });
-        guideSection.createEl('h4', { text: isGuild ? '📖 Adventurer Class to Engineering Discipline Legend' : '📖 Engineering & Product Discipline Guide', attr: { style: 'margin-top: 0; margin-bottom: 10px; font-weight: 700; color: var(--text-normal);' } });
-        guideSection.createEl('p', { text: isGuild ? 'To maintain clean alignment between your RPG party badges and standard engineering org structures, each Adventurer Class maps directly to an industry discipline:' : 'To maintain clean alignment across agile engineering org structures and team badges, each role maps directly to an industry discipline:', attr: { style: 'font-size: 0.84rem; color: var(--text-muted); margin-bottom: 14px;' } });
-
-        const guideGrid = guideSection.createDiv({ attr: { style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 8px;' } });
-        ADVENTURER_CLASSES.forEach(c => {
-            const row = guideGrid.createDiv({ attr: { style: 'padding: 8px 10px; border-radius: 8px; background: var(--background-primary); border: 1px solid var(--background-modifier-border);' } });
-            row.createDiv({ text: isGuild ? c.label : c.corpLabel, attr: { style: 'font-weight: 700; font-size: 0.82rem; color: var(--text-normal); margin-bottom: 2px;' } });
-            row.createDiv({ text: c.desc, attr: { style: 'font-size: 0.74rem; color: var(--text-muted); line-height: 1.25;' } });
-        });
     }
+
+
 
     renderTeamList(containerEl) {
         if (!containerEl) return;
